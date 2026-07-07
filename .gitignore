@@ -1,0 +1,53 @@
+# ==========================================
+# Vivado Project Gitignore Template
+# Kept files: Source (.v, .sv, .vhd), Constraints (.xdc), Project file (.xpr), Block Designs (.bd)
+# ==========================================
+
+# --- Vivado Temporary & Log Files ---
+*.log
+*.jou
+*.str
+*.os
+*.vdi
+*.pp
+.Xil/
+
+# --- Simulation & Testbench Outputs ---
+xsim.dir/
+*.pb
+*.wdb
+*.vcd
+*.exe
+
+# --- Compilation & Bitstream Outputs (Keep source, ignore generated) ---
+*.bit
+*.bin
+*.ltx
+*.mcs
+*.prm
+*.sys
+*.mem
+
+# --- Project-Specific Local Workspace User Settings ---
+# These paths change per user/machine and shouldn't be tracked
+.srcs/
+.gen/
+.sim/
+.ip_user_files/
+.hw/
+.runs/
+.cache/
+.data/
+
+# --- Specific to Block Designs (if used, ignore generated wrappers/runs but keep the source .bd) ---
+# Vivado recreates these automatically when opening the .xpr
+**/*.bd.tcl
+**/bd/*/hdl/
+**/bd/*/ip/
+**/bd/*/hw_handoff/
+**/bd/*/ui/
+**/bd/*/ipshared/
+
+# --- OS specific ---
+.DS_Store
+Thumbs.db
