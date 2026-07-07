@@ -30,23 +30,23 @@ Phased implementation of a VGA controller (starting from 640x480), resolution ex
   1. Draw static elements (e.g., a solid square, a rectangle, or a crosshair) by altering color outputs within specific coordinate ranges.
   2. Verify color integrity and alignment directly on the physical monitor.
 
-### 🔹 Phase 5 — Image Display & Animations
-* **Objective:** Display static and dynamic data using internal memory.
-* **Steps:**
-  1. Convert an image into raw format (e.g., **RGB565**) and generate the `.coe` file.
-  2. Instantiate a memory block (**BRAM**) in Vivado pre-loaded with the `.coe` file.
-  3. Connect the BRAM read logic to the VGA controller. For animations, dynamically modify the frame's start address.
-
-### 🔹 Phase 6 — Resolution Expansion
+### 🔹 Phase 5 — Resolution Expansion
 * **Objective:** Adapt the design for higher resolutions (e.g., 800×600, 1024×768).
 * **Steps:**
   1. Update timing constants in the RTL code.
   2. Generate the new pixel clock using a **PLL**.
   3. Fix any potential timing errors during implementation.
 
-### 🔹 Phase 7 — External Sensor Integration
+### 🔹 Phase 6 — External Sensor Integration
 * **Objective:** Acquire environmental data and display it in real time on the screen.
 * **Steps:**
   1. Implement the protocol driver for the sensor.
   2. Create the processing module that transforms the data into visual elements (text or graphics).
   3. Overlay the graphics onto the VGA signal and test the complete system on hardware.
+
+### 🔹 Phase 7 — Image Display & Animations
+* **Objective:** Display static and dynamic data using internal memory.
+* **Steps:**
+  1. Convert an image into raw format (e.g., **RGB565**) and generate the `.coe` file.
+  2. Instantiate a memory block (**BRAM**) in Vivado pre-loaded with the `.coe` file.
+  3. Connect the BRAM read logic to the VGA controller. For animations, dynamically modify the frame's start address.
