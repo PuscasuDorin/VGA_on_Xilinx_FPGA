@@ -3,9 +3,13 @@
 
  ###  Step-by-Step Checklist
 
-> -  **Step 1:** Develop and run the **VGA Controller Simulation** (640x480).
-> -  **Step 2:** Perform the **VGA Controller Hardware Implementation**.
-> -  **Step 3:** Display images & animations
-> -  **Step 4:** Increase the display resolution.
-> -  **Step 5:** Integrate external sensors.
-
+> -  **Phase 1:** Develop and run the **VGA Controller Simulation** (640x480).
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;**Specs:** 
+> -  **Phase 2:** Perform the **VGA Controller Hardware Implementation**.
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;**Specs:**
+> -  **Phase 3:** Display images & animations
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;**Specs:**
+> -  **Phase 4:** Increase the display resolution.
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;**Specs:**
+> -  **Phase 5:** Integrate external sensors.
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;**Specs:**
