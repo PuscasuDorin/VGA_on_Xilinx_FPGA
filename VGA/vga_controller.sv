@@ -1,24 +1,26 @@
 module vga_controller(
     input clk         ,
     input rst_n       ,
+
     output hsync      ,
     output vsync      ,
+
     output [7:0] red  ,
     output [7:0] green,
     output [7:0] blue       
 );
 
     // VGA timing parameters for 640x480 @ 60Hz
-    parameter H_SYNC_PULSE = 96;
-    parameter H_BACK_PORCH = 48;
     parameter H_ACTIVE_VIDEO = 640;
+    parameter H_SYNC_PULSE = 96;
     parameter H_FRONT_PORCH = 16;
+    parameter H_BACK_PORCH = 48;
     parameter H_TOTAL = H_SYNC_PULSE + H_BACK_PORCH + H_ACTIVE_VIDEO + H_FRONT_PORCH;
 
-    parameter V_SYNC_PULSE = 2;
-    parameter V_BACK_PORCH = 33;
     parameter V_ACTIVE_VIDEO = 480;
+    parameter V_SYNC_PULSE = 2;
     parameter V_FRONT_PORCH = 10;
+    parameter V_BACK_PORCH = 33;
     parameter V_TOTAL = V_SYNC_PULSE + V_BACK_PORCH + V_ACTIVE_VIDEO + V_FRONT_PORCH;
 
     reg [9:0] h_count; // Horizontal pixel counter
