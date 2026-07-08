@@ -23,8 +23,8 @@ module vga_controller(
 
     reg [9:0] h_count; // Horizontal pixel counter
     reg [9:0] v_count; // Vertical line counter
-    wire h_count_en;
-    wire v_count_en;
+    wire h_count_rst;
+    wire v_count_rst;
 
     // Horizontal and vertical sync signals
     assign hsync = ~((h_count >= (H_ACTIVE_VIDEO + H_FRONT_PORCH)) & (h_count < (H_ACTIVE_VIDEO + H_FRONT_PORCH + H_SYNC_PULSE))); // Active low
@@ -38,19 +38,19 @@ module vga_controller(
     assign blue  = (h_count < H_ACTIVE_VIDEO && v_count < V_ACTIVE_VIDEO) && rst_n ? 8'h00 : 8'h00; // Blue color during active video
 
     // Horizontal and vertical counters
-    assign h_count_en = (h_count == H_TOTAL - 1);
-    assign v_count_en = (v_count == V_TOTAL - 1);
+    assign h_count_rst = (h_count == H_TOTAL - 1);
+    assign v_count_rst = (v_count == V_TOTAL - 1);
 
     always @(posedge clk or negedge rst_n) begin
-        if(~rst_n)     h_count <= 0          ; else
-        if(h_count_en) h_count <= 0          ; else
-                       h_count <= h_count + 1;
+        if(~rst_n)      h_count <= 0          ; else
+        if(h_count_rst) h_count <= 0          ; else
+                        h_count <= h_count + 1;
     end
 
     always @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                    v_count <= 0          ; else
-        if(h_count_en &&  v_count_en) v_count <= 0          ; else
-        if(h_count_en && !v_count_en) v_count <= v_count + 1;
+        if(~rst_n)                      v_count <= 0          ; else
+        if(h_count_rst &&  v_count_rst) v_count <= 0          ; else
+        if(h_count_rst && !v_count_rst) v_count <= v_count + 1;
     end
 
 endmodule
