@@ -24,28 +24,46 @@ localparam V_BACK_PORCH   = 33 ;
 logic clk_25MHz;
 logic rst_n    ;
 
+logic [9:0] h_count;
+logic [9:0] v_count;
+
+logic video_on;
+
 assign rst_n = ~rst;
 
 vga_controller#(
     // VGA timing parameters for 640x480 @ 60Hz
-    .H_ACTIVE_VIDEO(H_ACTIVE_VIDEO),
-    .H_SYNC_PULSE  (H_SYNC_PULSE  ),
-    .H_FRONT_PORCH (H_FRONT_PORCH ),
-    .H_BACK_PORCH  (H_BACK_PORCH  ),
-    .V_ACTIVE_VIDEO(V_ACTIVE_VIDEO),
-    .V_SYNC_PULSE  (V_SYNC_PULSE  ),
-    .V_FRONT_PORCH (V_FRONT_PORCH ),
-    .V_BACK_PORCH  (V_BACK_PORCH  )
-)vga_controller(
-    .clk  (clk_25MHz),
-    .rst_n(rst_n    ),
+    .H_ACTIVE_VIDEO (H_ACTIVE_VIDEO),
+    .H_SYNC_PULSE   (H_SYNC_PULSE  ),
+    .H_FRONT_PORCH  (H_FRONT_PORCH ),
+    .H_BACK_PORCH   (H_BACK_PORCH  ),
 
-    .hsync(Hsync    ),
-    .vsync(Vsync    ),
+    .V_ACTIVE_VIDEO (V_ACTIVE_VIDEO),
+    .V_SYNC_PULSE   (V_SYNC_PULSE  ),
+    .V_FRONT_PORCH  (V_FRONT_PORCH ),
+    .V_BACK_PORCH   (V_BACK_PORCH  )
+)vga_controller_i(
+    .clk     (clk_25MHz),
+    .rst_n   (rst_n    ),
 
-    .red  (vgaRed   ),
-    .green(vgaGreen ),
-    .blue (vgaBlue  )      
+    .hsync   (Hsync    ),
+    .vsync   (Vsync    ),
+      
+    .h_count (h_count  ),
+    .v_count (v_count  ),
+
+    .video_on(video_on )
+);
+
+vga_img_display vga_img_display_i(
+    .x_pos    (h_count ),
+    .y_pos    (v_count ),
+
+    .video_on (video_on),
+
+    .red      (vgaRed  ),
+    .green    (vgaGreen),
+    .blue     (vgaBlue )
 );
 
 clk_vga_wrapper clk_vga_wrapper_i(
