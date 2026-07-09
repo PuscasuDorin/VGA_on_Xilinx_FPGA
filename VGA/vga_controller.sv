@@ -48,7 +48,6 @@ module vga_controller#(
         if(h_count_rst && !v_count_rst) v_count <= v_count + 1;
     end
 
-
     assign video_on = (h_count < H_ACTIVE_VIDEO && v_count < V_ACTIVE_VIDEO);
 
 endmodule
