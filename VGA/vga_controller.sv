@@ -1,27 +1,28 @@
-module vga_controller(
+module vga_controller#(
+    // VGA timing parameters for 640x480 @ 60Hz
+    parameter H_ACTIVE_VIDEO = 640,
+    parameter H_SYNC_PULSE   = 96 ,
+    parameter H_FRONT_PORCH  = 16 ,
+    parameter H_BACK_PORCH   = 48 ,
+
+    parameter V_ACTIVE_VIDEO = 480,
+    parameter V_SYNC_PULSE   = 2  ,
+    parameter V_FRONT_PORCH  = 10 ,
+    parameter V_BACK_PORCH   = 33
+)(
     input clk         ,
     input rst_n       ,
 
     output hsync      ,
     output vsync      ,
 
-    output [7:0] red  ,
-    output [7:0] green,
-    output [7:0] blue       
+    output [3:0] red  ,
+    output [3:0] green,
+    output [3:0] blue       
 );
-
-    // VGA timing parameters for 640x480 @ 60Hz
-    parameter H_ACTIVE_VIDEO = 640;
-    parameter H_SYNC_PULSE = 96;
-    parameter H_FRONT_PORCH = 16;
-    parameter H_BACK_PORCH = 48;
-    parameter H_TOTAL = H_SYNC_PULSE + H_BACK_PORCH + H_ACTIVE_VIDEO + H_FRONT_PORCH;
-
-    parameter V_ACTIVE_VIDEO = 480;
-    parameter V_SYNC_PULSE = 2;
-    parameter V_FRONT_PORCH = 10;
-    parameter V_BACK_PORCH = 33;
-    parameter V_TOTAL = V_SYNC_PULSE + V_BACK_PORCH + V_ACTIVE_VIDEO + V_FRONT_PORCH;
+  
+    localparam H_TOTAL = H_SYNC_PULSE + H_BACK_PORCH + H_ACTIVE_VIDEO + H_FRONT_PORCH;
+    localparam V_TOTAL = V_SYNC_PULSE + V_BACK_PORCH + V_ACTIVE_VIDEO + V_FRONT_PORCH;
 
     reg [9:0] h_count; // Horizontal pixel counter
     reg [9:0] v_count; // Vertical line counter
@@ -34,7 +35,7 @@ module vga_controller(
 
 
 
-    // RGB output logic
+    // RGB output logic 
     assign red   = (h_count < H_ACTIVE_VIDEO && v_count < V_ACTIVE_VIDEO) && rst_n ? 8'hFF : 8'h00; // Red color during active video
     assign green = (h_count < H_ACTIVE_VIDEO && v_count < V_ACTIVE_VIDEO) && rst_n ? 8'h00 : 8'h00; // Green color during active video
     assign blue  = (h_count < H_ACTIVE_VIDEO && v_count < V_ACTIVE_VIDEO) && rst_n ? 8'h00 : 8'h00; // Blue color during active video
