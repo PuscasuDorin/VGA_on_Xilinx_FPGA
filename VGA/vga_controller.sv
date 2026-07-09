@@ -36,13 +36,13 @@ module vga_controller#(
     assign h_count_rst = (h_count == H_TOTAL - 1);
     assign v_count_rst = (v_count == V_TOTAL - 1);
 
-    always @(posedge clk or negedge rst_n) begin
+    always_ff @(posedge clk or negedge rst_n) begin
         if(~rst_n)      h_count <= 0          ; else
         if(h_count_rst) h_count <= 0          ; else
                         h_count <= h_count + 1;
     end
 
-    always @(posedge clk or negedge rst_n) begin
+    always_ff @(posedge clk or negedge rst_n) begin
         if(~rst_n)                      v_count <= 0          ; else
         if(h_count_rst &&  v_count_rst) v_count <= 0          ; else
         if(h_count_rst && !v_count_rst) v_count <= v_count + 1;
