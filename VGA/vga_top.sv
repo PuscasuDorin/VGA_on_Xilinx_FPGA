@@ -1,6 +1,6 @@
 module vga_top(
     input  logic sys_clock     ,
-    input  logic rst         ,
+    input  logic rst           ,
 
     output logic Hsync         ,
     output logic Vsync         ,
@@ -55,7 +55,10 @@ vga_controller#(
     .video_on(video_on )
 );
 
-vga_img_display vga_img_display_i(
+vga_img_display#(
+    .H_ACTIVE_VIDEO (H_ACTIVE_VIDEO),
+    .V_ACTIVE_VIDEO (V_ACTIVE_VIDEO)
+)vga_img_display_i(
     .clk     (clk_25MHz),
     .rst_n   (rst_n    ),
 
@@ -63,7 +66,7 @@ vga_img_display vga_img_display_i(
     .y_pos    (v_count ),
 
     .video_on (video_on),
-    .vsync   (Vsync    ),
+    .vsync    (Vsync    ),
 
     .red      (vgaRed  ),
     .green    (vgaGreen),
