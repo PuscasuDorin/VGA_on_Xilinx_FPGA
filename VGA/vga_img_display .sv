@@ -1,6 +1,6 @@
 module vga_img_display#(
-    parameter H_ACTIVE_VIDEO = 640;
-    parameter V_ACTIVE_VIDEO = 480;
+    parameter H_ACTIVE_VIDEO = 640,
+    parameter V_ACTIVE_VIDEO = 480
 )(
     input logic        clk     ,
     input logic        rst_n   ,
@@ -17,10 +17,12 @@ module vga_img_display#(
 );
     localparam BOX_SIZE = 100;
 
-    logic in_square  ;
     logic in_triangle;
+    logic in_square;
     
-    // --- INTERNAL SQUARE MOTION REGISTERS ---
+    logic frame_tick;  
+
+    //SQUARE MOTION REGISTERS
     logic [9:0] box_x; 
     logic [9:0] box_y; 
     logic       dir_x; // 0 = Left, 1 = Right
@@ -40,6 +42,7 @@ module vga_img_display#(
                      (y_pos >= box_y && y_pos < box_y + BOX_SIZE);
 
 
+
     // Detect the falling edge of vsync (occurs once per completed frame)
     logic vsync_reg;
     always_ff @(posedge clk or negedge rst_n) begin
@@ -47,39 +50,38 @@ module vga_img_display#(
         else        vsync_reg <= vsync;
     end
 
-    wire frame_tick = (vsync_reg && !vsync); // Falling edge detector
+    assign frame_tick = (vsync_reg && !vsync); // Falling edge detector
 
     //SQUARE MOTION AND BOUNCE
     // Edge bounce logic
     always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                               dir_x <= 1'b1; else
-        if(box_x == 1)                           dir_x <= 1'b1; else
-        if(box_x + BOX_SIZE == H_ACTIVE_VIDEO-2) dir_x <= 1'b0;
+        if(~rst_n)                                             dir_x <= 1'b1; else
+        if(frame_tick && box_x == 1)                           dir_x <= 1'b1; else
+        if(frame_tick && box_x + BOX_SIZE == H_ACTIVE_VIDEO-2) dir_x <= 1'b0;
     end
 
     always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                               dir_y <= 1'b1; else
-        if(box_y == 1)                           dir_y <= 1'b1; else
-        if(box_y + BOX_SIZE == V_ACTIVE_VIDEO-2) dir_y <= 1'b0;
+        if(~rst_n)                                             dir_y <= 1'b1; else
+        if(frame_tick && box_y == 1)                           dir_y <= 1'b1; else
+        if(frame_tick && box_y + BOX_SIZE == V_ACTIVE_VIDEO-2) dir_y <= 1'b0;
     end
 
     // Move the box
     always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n) box_x <= 10'd10   ; else
-        if(dir_x)  box_x <= box_x + 1; else
-                   box_x <= box_x - 1;
+        if(~rst_n)               box_x <= 10'd10   ; else
+        if(frame_tick && dir_x)  box_x <= box_x + 1; else
+        if(frame_tick && ~dir_x) box_x <= box_x - 1;
     end
 
     always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n) box_y <= 10'd10   ; else
-        if(dir_y)  box_y <= box_y + 1; else
-                   box_y <= box_y - 1;
+        if(~rst_n)               box_y <= 10'd10   ; else
+        if(frame_tick && dir_y)  box_y <= box_y + 1; else
+        if(frame_tick && ~dir_y) box_y <= box_y - 1;
     end
 
-
     //RGB output logic 
-    assign red   = (video_on) ? 4'hF : 4'h0             ;              
-    assign green = (video_on && in_square) ? 4'hF : 4'h0;
-    assign blue  = 4'h0;
+    assign red   = (video_on && in_square) ? 4'hF : 4'h0             ;              
+    assign green = (video_on)              ? 4'hF : 4'h0;
+    assign blue  = (video_on && in_square) ? 4'hF : 4'h0;
 
 endmodule
