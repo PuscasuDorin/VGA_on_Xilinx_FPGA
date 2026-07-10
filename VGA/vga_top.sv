@@ -56,10 +56,14 @@ vga_controller#(
 );
 
 vga_img_display vga_img_display_i(
+    .clk     (clk_25MHz),
+    .rst_n   (rst_n    ),
+
     .x_pos    (h_count ),
     .y_pos    (v_count ),
 
     .video_on (video_on),
+    .vsync   (Vsync    ),
 
     .red      (vgaRed  ),
     .green    (vgaGreen),
