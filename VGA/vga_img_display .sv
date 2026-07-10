@@ -39,7 +39,7 @@ module vga_img_display#(
                          (y_pos >= 170 + 2 * (x_pos - 320)); 
 
     assign in_square = (x_pos >= box_x && x_pos < box_x + BOX_SIZE) && 
-                     (y_pos >= box_y && y_pos < box_y + BOX_SIZE);
+                       (y_pos >= box_y && y_pos < box_y + BOX_SIZE);
 
 
 
