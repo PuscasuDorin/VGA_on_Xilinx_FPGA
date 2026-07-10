@@ -17,7 +17,7 @@ module vga_img_display#(
     output logic [3:0] green   ,
     output logic [3:0] blue
 );
-    localparam BOX_SIZE = 50;
+    localparam SHAPE_HALF_SIZE = 50;
 
     logic in_triangle;
     logic in_square;
@@ -40,8 +40,8 @@ module vga_img_display#(
                          (y_pos >= 170 + 2 * (320 - x_pos)) &&
                          (y_pos >= 170 + 2 * (x_pos - 320)); 
 
-    assign in_square = (x_pos >= box_x - BOX_SIZE && x_pos < box_x + BOX_SIZE) && 
-                       (y_pos >= box_y - BOX_SIZE && y_pos < box_y + BOX_SIZE);
+    assign in_square = (x_pos >= box_x - SHAPE_HALF_SIZE && x_pos < box_x + SHAPE_HALF_SIZE) && 
+                       (y_pos >= box_y - SHAPE_HALF_SIZE && y_pos < box_y + SHAPE_HALF_SIZE);
 
 
     assign speed = (sw[0]) ? 3 : 1;
@@ -58,15 +58,15 @@ module vga_img_display#(
     //SQUARE MOTION AND BOUNCE
     // Edge bounce logic
     always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                                                    dir_x <= 1'b1; else
-        if(frame_tick && box_x <= BOX_SIZE + speed + 1)               dir_x <= 1'b1; else
-        if(frame_tick && box_x + BOX_SIZE + speed >= H_ACTIVE_VIDEO ) dir_x <= 1'b0;
+        if(~rst_n)                                                           dir_x <= 1'b1; else
+        if(frame_tick && box_x <= SHAPE_HALF_SIZE + speed + 1)               dir_x <= 1'b1; else
+        if(frame_tick && box_x + SHAPE_HALF_SIZE + speed >= H_ACTIVE_VIDEO ) dir_x <= 1'b0;
     end
 
     always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                                                   dir_y <= 1'b1; else
-        if(frame_tick && box_y <= BOX_SIZE + speed + 1)              dir_y <= 1'b1; else
-        if(frame_tick && box_y + BOX_SIZE + speed >= V_ACTIVE_VIDEO) dir_y <= 1'b0;
+        if(~rst_n)                                                          dir_y <= 1'b1; else
+        if(frame_tick && box_y <= SHAPE_HALF_SIZE + speed + 1)              dir_y <= 1'b1; else
+        if(frame_tick && box_y + SHAPE_HALF_SIZE + speed >= V_ACTIVE_VIDEO) dir_y <= 1'b0;
     end
 
     // Move the box
