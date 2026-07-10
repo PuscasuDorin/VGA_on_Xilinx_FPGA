@@ -1,19 +1,20 @@
 # VGA & Sensor Integration Project
-
+### Autor: Pușcașu Dorin
 ---
 
 ## Istoric Revizii
 
 | Versiune | Data       | Autor         | Descriere |
 | :---:    | :---:      | :---:          | :---      |
-| **v0.1** | 07.07.2026 | Puscasu Dorin | *Draft*   |
-| **v0.2** | 10.07.2026 | Puscasu Dorin | *Am îmbunătățit         documentația și am implementat etapele: 2, 3, 4*    |
+| **v0.1** | 07.07.2026 | Pușcașu Dorin | *Draft*   |
+| **v0.2** | 10.07.2026 | Pușcașu Dorin | *Am îmbunătățit         documentația și am implementat etapele: 2, 3, 4*    |
 
 ---
 
 
 ##  Cuprins
 - [VGA \& Sensor Integration Project](#vga--sensor-integration-project)
+    - [Autor: Pușcașu Dorin](#autor-pușcașu-dorin)
   - [Istoric Revizii](#istoric-revizii)
   - [Cuprins](#cuprins)
   - [Obiectivele Proiectului](#obiectivele-proiectului)
