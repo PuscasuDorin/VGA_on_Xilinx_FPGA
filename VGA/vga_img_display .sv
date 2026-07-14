@@ -2,21 +2,47 @@ module vga_img_display#(
     parameter H_ACTIVE_VIDEO = 640,
     parameter V_ACTIVE_VIDEO = 480
 )(
-    input logic        clk     ,
-    input logic        rst_n   ,
+    //input logic        clk     ,
+    //input logic        rst_n   ,
 
-    input logic  [1:0] sw      ,
+    //input logic  [1:0] sw      ,
 
     input  logic [9:0] x_pos   , // Current VGA pixel X position
     input  logic [9:0] y_pos   , // Current VGA pixel Y position
-
     input  logic       video_on, // 1 inside active area, 0 in blanking
     input  logic       vsync   , // Vertical sync pulse from controller
+
+    input  logic [7:0] pixel_data,  // Read from Frame Buffer
+    output logic [16:0] read_addr,   // Address to read from Frame Buffer
 
     output logic [3:0] red     ,
     output logic [3:0] green   ,
     output logic [3:0] blue
 );
+
+localparam X_START = 160; 
+    localparam Y_START = 120; 
+    localparam IMG_W   = 320;
+    localparam IMG_H   = 240;
+
+    wire in_image_window = (x_pos >= X_START && x_pos < X_START + IMG_W) &&
+                           (y_pos >= Y_START && y_pos < Y_START + IMG_H);
+
+    wire [9:0] rel_x = x_pos - X_START;
+    wire [9:0] rel_y = y_pos - Y_START;
+
+    assign read_addr = (in_image_window) ? (rel_y * IMG_W + rel_x) : 17'd0;
+
+    // Expandăm de la RGB332 (8 biți) înapoi la RGB444 (12 biți)
+    logic [3:0] exp_r, exp_g, exp_b;
+    assign exp_r = {pixel_data[7:5], pixel_data[7]}; // Replicăm MSB-ul pentru un 4-bit curat
+    assign exp_g = {pixel_data[4:2], pixel_data[4]};
+    assign exp_b = {pixel_data[1:0], pixel_data[1:0]};
+
+    assign red   = (video_on) ? (in_image_window ? exp_r : 4'h0) : 4'h0;
+    assign green = (video_on) ? (in_image_window ? exp_g : 4'h0) : 4'h0;
+    assign blue  = (video_on) ? (in_image_window ? exp_b : 4'h0) : 4'h0;
+/*
     localparam SHAPE_HALF_SIZE = 50;
 
     logic triangle;
@@ -86,5 +112,5 @@ module vga_img_display#(
     assign red   = (video_on && square) ? 4'hF : 4'h0             ;              
     assign green = (video_on)           ? 4'hF : 4'h0;
     assign blue  = (video_on && square) ? 4'hF : 4'h0;
-
+*/
 endmodule
