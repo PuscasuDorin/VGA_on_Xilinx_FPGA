@@ -19,8 +19,8 @@ module vga_img_display#(
 );
     localparam SHAPE_HALF_SIZE = 50;
 
-    logic in_triangle;
-    logic in_square;
+    logic triangle;
+    logic square;
     
     logic frame_tick;  
 
@@ -36,12 +36,12 @@ module vga_img_display#(
     // Bottom-left:    X = 220, Y = 340
     // Bottom-right:   X = 420, Y = 340
     // Slope 2/1: for every 1 pixel horizontally, move 2 pixels vertically  
-    assign in_triangle = (y_pos >= 140) && (y_pos < 340)    && 
-                         (y_pos >= 170 + 2 * (320 - x_pos)) &&
-                         (y_pos >= 170 + 2 * (x_pos - 320)); 
+    assign triangle = (y_pos >= 140) && (y_pos < 340)    && 
+                      (y_pos >= 170 + 2 * (320 - x_pos)) &&
+                      (y_pos >= 170 + 2 * (x_pos - 320)); 
 
-    assign in_square = (x_pos >= box_x - SHAPE_HALF_SIZE && x_pos < box_x + SHAPE_HALF_SIZE) && 
-                       (y_pos >= box_y - SHAPE_HALF_SIZE && y_pos < box_y + SHAPE_HALF_SIZE);
+    assign square = (x_pos >= box_x - SHAPE_HALF_SIZE && x_pos < box_x + SHAPE_HALF_SIZE) && 
+                    (y_pos >= box_y - SHAPE_HALF_SIZE && y_pos < box_y + SHAPE_HALF_SIZE);
 
 
     assign speed = (sw[0]) ? 3 : 1;
@@ -83,8 +83,8 @@ module vga_img_display#(
     end
 
     //RGB output logic 
-    assign red   = (video_on && in_square) ? 4'hF : 4'h0             ;              
-    assign green = (video_on)              ? 4'hF : 4'h0;
-    assign blue  = (video_on && in_square) ? 4'hF : 4'h0;
+    assign red   = (video_on && square) ? 4'hF : 4'h0             ;              
+    assign green = (video_on)           ? 4'hF : 4'h0;
+    assign blue  = (video_on && square) ? 4'hF : 4'h0;
 
 endmodule
