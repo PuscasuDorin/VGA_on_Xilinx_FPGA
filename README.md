@@ -87,7 +87,7 @@
 * **Mod de rezolvare:** -
 
 <figure>
-  <img src="img/FSM_SCCB_diagram.png" alt="Diagrama FSM-SCCB">
+  <img src="doc/FSM_SCCB_diagram.png" alt="Diagrama FSM-SCCB">
   <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
 </figure>
 

@@ -1,4 +1,4 @@
-module vga_top(
+module top(
     input  logic       sys_clock      ,
     input  logic       rst            ,
 
