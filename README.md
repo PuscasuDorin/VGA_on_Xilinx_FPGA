@@ -86,6 +86,13 @@
 * **Dificultăți:** -
 * **Mod de rezolvare:** -
 
+<figure>
+  <img src="img/FSM_SCCB_diagram.png" alt="Diagrama FSM-SCCB">
+  <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
+</figure>
+
+SCCB - Serial Camera Control Bus
+
 ---
 
 ## Etapa 7 (Bonus) - Trimiterea imaginii captate prin UART la PC
@@ -93,3 +100,4 @@
 * **Realizare:** -
 * **Dificultăți:** - 
 * **Mod de rezolvare:** - 
+
