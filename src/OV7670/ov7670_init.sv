@@ -1,74 +1,78 @@
 module ov7670_init (
     input  logic       clk,           // 25.175 MHz Main Clock
     input  logic       rst_n,         // Active-low reset
-    input  logic       sccb_ready,    // Input de la ov7670_sccb (ready)
+    input  logic       sccb_ready,    // Input from ov7670_sccb (ready)
     
-    output logic       sccb_start,    // Output catre ov7670_sccb (start)
-    output logic [7:0] sccb_reg_addr, // Output catre ov7670_sccb (reg_addr)
-    output logic [7:0] sccb_reg_data, // Output catre ov7670_sccb (reg_data)
-    output logic       done           // Devine 1 cand configurarea s-a terminat cu succes
+    output logic       sccb_start,    // Output to ov7670_sccb (start)
+    output logic [7:0] sccb_reg_addr, // Output to ov7670_sccb (reg_addr)
+    output logic [7:0] sccb_reg_data, // Output to ov7670_sccb (reg_data)
+    output logic       done           // Goes high when configuration finishes successfully
 );
 
-    // Numarul total de registri din noua tabela de initializare
-    localparam TOTAL_REGS = 15;
+    // Total number of registers in the new initialization table
+    localparam TOTAL_REGS = 17;
 
-    // Masina de stari (FSM)
+    // Finite State Machine (FSM)
     typedef enum logic [2:0] {
-        S_RESET_DELAY, // Asteptam ~30ms dupa comanda de reset software a camerei[cite: 1]
-        S_FETCH,       // Citim urmatorul registru din ROM
-        S_START_WRITE, // Generam pulsul de start pentru SCCB
-        S_WAIT_READY,  // Asteptam ca modulul SCCB sa termine transmisia (ready == 1)
-        S_NEXT,        // Trecem la urmatorul registru sau finalizam
-        S_DONE         // Initializare terminata
+        S_RESET_DELAY, // Wait ~30ms after the camera software reset command
+        S_FETCH,       // Fetch the next register from ROM
+        S_START_WRITE, // Generate the start pulse for SCCB
+        S_WAIT_READY,  // Wait for the SCCB module to finish transmission (ready == 1)
+        S_NEXT,        // Move to the next register or finish
+        S_DONE         // Initialization finished
     } state_t;
 
     state_t state;
 
-    // Pointer catre registrul curent din ROM
-    logic [3:0] reg_ptr;
+    // Pointer to the current register in ROM
+    logic [4:0] reg_ptr;
 
-    // Temporizator pentru delay-ul de reset (~30 ms la un ceas de 25.175 MHz)
-    // 25.175 MHz * 30 ms = 755.250 de cicli de ceas
+    // Timer for reset delay (~30 ms at 25.175 MHz clock)
+    // 25.175 MHz * 30 ms = 755,250 clock cycles
     logic [19:0] delay_counter;
     localparam DELAY_30MS = 20'd755250;
 
-    // Structura pentru stocarea perechilor (Adresa, Valoare)
+    // Structure for storing (Address, Value) pairs
     typedef struct packed {
         logic [7:0] addr;
         logic [7:0] data;
     } reg_t;
 
-    // ROM-ul cu configurarea camerei (QVGA Nativ, RGB565)[cite: 1]
+    // ROM containing camera configuration (Native QVGA, RGB565)
     reg_t rom_regs [TOTAL_REGS];
     
     always_comb begin
-        // 1. Resetare software obligatorie (așteaptă ~30ms după acest pas)[cite: 1]
-        rom_regs[0]  = '{addr: 8'h12, data: 8'h80}; // COM7: Reset complet[cite: 1]
+        // 1. Mandatory software reset (wait ~30ms after this step)
+        rom_regs[0]  = '{addr: 8'h12, data: 8'h80}; // COM7: Full Reset
         
-        // 2. Format si rezolutie (QVGA, RGB565)[cite: 1]
-        rom_regs[1]  = '{addr: 8'h12, data: 8'h14}; // COM7: QVGA + RGB[cite: 1]
-        rom_regs[2]  = '{addr: 8'h40, data: 8'hD0}; // COM15: RGB565 standard, full range[cite: 1]
-        rom_regs[3]  = '{addr: 8'h3A, data: 8'h04}; // TSLB: Aliniere biti[cite: 1]
+        // 2. Format and resolution (QVGA, RGB565)
+        rom_regs[1]  = '{addr: 8'h12, data: 8'h14}; // COM7: QVGA + RGB
+        rom_regs[2]  = '{addr: 8'h40, data: 8'hD0}; // COM15: RGB565 standard, full range
+        rom_regs[3]  = '{addr: 8'h3A, data: 8'h04}; // TSLB: Bit alignment
         
-        // 3. Activare scalare hardware interna din camera (VGA -> QVGA)[cite: 1]
-        rom_regs[4]  = '{addr: 8'h0C, data: 8'h08}; // COM3: Activeaza scalarea interna[cite: 1]
-        rom_regs[5]  = '{addr: 8'h3E, data: 8'h19}; // COM14: Activeaza scalarea ceasului PCLK[cite: 1]
-        rom_regs[6]  = '{addr: 8'h72, data: 8'h11}; // SCALING_DCWCTR: Decimare verticala/orizontala[cite: 1]
-        rom_regs[7]  = '{addr: 8'h73, data: 8'hF1}; // SCALING_PCLK_DIV: Divizor ceas pixeli[cite: 1]
+        // 3. Enable internal hardware scaling in the camera (VGA -> QVGA)
+        rom_regs[4]  = '{addr: 8'h0C, data: 8'h08}; // COM3: Enable internal scaling
+        rom_regs[5]  = '{addr: 8'h3E, data: 8'h19}; // COM14: Enable PCLK clock scaling
+        rom_regs[6]  = '{addr: 8'h72, data: 8'h11}; // SCALING_DCWCTR: Vertical/horizontal decimation
+        rom_regs[7]  = '{addr: 8'h73, data: 8'hF1}; // SCALING_PCLK_DIV: Pixel clock divider
         
-        // 4. Frecventa ceas pixeli (CLKRC divizat la 2 pentru stabilitate)[cite: 1]
-        rom_regs[8]  = '{addr: 8'h11, data: 8'h01}; // CLKRC: Prescaler ceas intern[cite: 1]
+        // 4. Pixel clock frequency (CLKRC divided by 2 for stability)
+        rom_regs[8]  = '{addr: 8'h11, data: 8'h01}; // CLKRC: Internal clock prescaler
         
-        // 5. Corectie pozitionare fereastra (Aliniere imagine optimizata pentru scalare)[cite: 1]
-        rom_regs[9]  = '{addr: 8'h17, data: 8'h16}; // HSTART[cite: 1]
-        rom_regs[10] = '{addr: 8'h18, data: 8'h04}; // HSTOP[cite: 1]
-        rom_regs[11] = '{addr: 8'h32, data: 8'hA4}; // HREF[cite: 1]
-        rom_regs[12] = '{addr: 8'h19, data: 8'h02}; // VSTART[cite: 1]
-        rom_regs[13] = '{addr: 8'h1A, data: 8'h7A}; // VSTOP[cite: 1]
-        rom_regs[14] = '{addr: 8'h03, data: 8'h0A}; // VREF[cite: 1]
+        // 5. Window positioning correction (Image alignment optimized for scaling)
+        rom_regs[9]  = '{addr: 8'h17, data: 8'h16}; // HSTART
+        rom_regs[10] = '{addr: 8'h18, data: 8'h04}; // HSTOP
+        rom_regs[11] = '{addr: 8'h32, data: 8'hA4}; // HREF
+        rom_regs[12] = '{addr: 8'h19, data: 8'h02}; // VSTART
+        rom_regs[13] = '{addr: 8'h1A, data: 8'h7A}; // VSTOP
+        rom_regs[14] = '{addr: 8'h03, data: 8'h0A}; // VREF
+        rom_regs[15] = '{addr: 8'h56, data: 8'h39}; // Contrast
+        rom_regs[16] = '{addr: 8'h1E, data: 8'h10}; // Mirror
+        //om_regs[17] = '{addr: 8'h55, data: 8'h20}; // Brightness
+        //rom_regs[18] = '{addr: 8'h57, data: 8'h50}; // Contrast center
     end
 
-    // FSM pentru controlul scrierii registrilor
+    // FSM for controlling register writes
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             state         <= S_FETCH;
@@ -89,17 +93,17 @@ module ov7670_init (
 
                 S_START_WRITE: begin
                     if (sccb_ready) begin
-                        sccb_start <= 1'b1; // Generam pulsul de start
+                        sccb_start <= 1'b1; // Generate the start pulse
                         state      <= S_WAIT_READY;
                     end
                 end
 
                 S_WAIT_READY: begin
-                    sccb_start <= 1'b0; // Coboram imediat start-ul
-                    // Asteptam ca SCCB sa preia comanda si sa redevina ready
+                    sccb_start <= 1'b0; // Immediately pull down start
+                    // Wait for SCCB to take the command and become ready again
                     if (sccb_ready && !sccb_start) begin
-                        // Daca am scris registrul de Reset (care este primul, la indexul 0),
-                        // intram in delay-ul de 30ms ca senzorul sa reporneasca stabil[cite: 1].
+                        // If we wrote the Reset register (which is the first one, at index 0),
+                        // enter the 30ms delay so that the sensor restarts stably.
                         if (reg_ptr == 0) begin
                             delay_counter <= 0;
                             state         <= S_RESET_DELAY;
@@ -127,8 +131,8 @@ module ov7670_init (
                 end
 
                 S_DONE: begin
-                    done  <= 1'b1; // Semnaleaza modulului principal ca initializarea s-a incheiat
-                    state <= S_DONE; // Blocheaza FSM-ul aici pana la urmatorul Reset global
+                    done  <= 1'b1; // Signals the main module that initialization has finished
+                    state <= S_DONE; // Locks the FSM here until the next global Reset
                 end
 
                 default: state <= S_FETCH;
