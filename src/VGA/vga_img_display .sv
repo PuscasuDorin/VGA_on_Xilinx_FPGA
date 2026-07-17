@@ -50,7 +50,11 @@ module vga_img_display #(
     always_ff @(posedge clk) begin
         if (video_on && in_image_bounds ) begin
             // To obtain shades of gray, the color channels must be IDENTICAL
-            red   = grey_4bit;
+            if(square) begin
+                red = 4'hF;
+            end else begin
+                red   = grey_4bit;
+            end
             green = grey_4bit;
             blue  = grey_4bit;
         end else begin
@@ -131,4 +135,7 @@ module vga_img_display #(
     assign green = (video_on)           ? 4'hF : 4'h0;
     assign blue  = (video_on && square) ? 4'hF : 4'h0;
 */
+  assign square = (x_pos >=  220 && x_pos < 420) && 
+                  (y_pos >= 140 && y_pos < 340);
+
 endmodule
