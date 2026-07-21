@@ -3,6 +3,7 @@ module top(
     input  logic       rst            ,
 
     input  logic [1:0] sw             ,
+    input  logic       pir_sensor     ,         //PIR - passive infrared
 
     // Vga I/O
     output logic       Hsync          ,
@@ -106,17 +107,18 @@ vga_img_display#(
     .clk      (clk_25MHz),
     //.rst_n    (rst_n    ),
 
-    .sw       (sw[1]      ),
+    .sw         (sw[1]      ),
+    .pir_sensor (pir_sensor),
 
-    .x_pos    (h_count ),
-    .y_pos    (v_count ),
+    .x_pos      (h_count ),
+    .y_pos      (v_count ),
 
-    .video_on (video_on),
-    .vsync    (Vsync    ),
+    .video_on   (video_on),
+    .vsync      (Vsync    ),
 
-    .red      (vgaRed  ),
-    .green    (vgaGreen),
-    .blue     (vgaBlue ),
+    .red        (vgaRed  ),
+    .green      (vgaGreen),
+    .blue       (vgaBlue ),
 
     .pixel_data (rd_data),
     .rd_addr    (rd_addr)
@@ -165,7 +167,7 @@ ov7670_capture ov7670_capture_i(
 frame_buffer fb_i (
     // Portul A: Scriere (Sincronizat cu ceasul camerei PCLK)
     .clka  (pclk_buf),      // Port A Write Clock
-    .wea   (wr_en_sw),                    // Port A Write Enable
+    .wea   (~pir_sensor),                    // Port A Write Enable
     .addra (wr_addr),                 // Port A Address
     .dina  (wr_data),                  // Port A Pixel Data input
     

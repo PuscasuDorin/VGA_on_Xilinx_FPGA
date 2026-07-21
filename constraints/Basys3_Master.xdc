@@ -123,8 +123,9 @@ set_property PACKAGE_PIN U18 [get_ports rst]
 
 ##Pmod Header JA
 ##Sch name = JA1
-#set_property PACKAGE_PIN J1 [get_ports {JA[0]}]					
-	#set_property IOSTANDARD LVCMOS33 [get_ports {JA[0]}]
+set_property PACKAGE_PIN J1 [get_ports {pir_sensor}]			
+	set_property IOSTANDARD LVCMOS33 [get_ports {pir_sensor}]
+		set_property PULLDOWN TRUE [get_ports {pir_sensor}]
 ##Sch name = JA2
 #set_property PACKAGE_PIN L2 [get_ports {JA[1]}]					
 	#set_property IOSTANDARD LVCMOS33 [get_ports {JA[1]}]

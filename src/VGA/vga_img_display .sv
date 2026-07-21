@@ -15,6 +15,8 @@ module vga_img_display #(
 
     input  logic        sw,
 
+    input  logic        pir_sensor,
+
     // 4-bit colors physically sent to the Basys 3 board VGA DAC
     output logic [3:0]  red,
     output logic [3:0]  green,
@@ -50,13 +52,25 @@ module vga_img_display #(
     always_ff @(posedge clk) begin
         if (video_on && in_image_bounds ) begin
             // To obtain shades of gray, the color channels must be IDENTICAL
-            if(square) begin
+            if((square || pixel_on) && pir_sensor) begin
                 red = 4'hF;
             end else begin
                 red   = grey_4bit;
             end
-            green = grey_4bit;
-            blue  = grey_4bit;
+
+            if(pixel_on && pir_sensor) begin
+                green = 4'hF;
+            end else begin
+                green = grey_4bit;
+            end
+
+            if(pixel_on && pir_sensor) begin
+                blue = 4'hF;
+            end else begin
+                blue  = grey_4bit;
+            end
+            
+            
         end else begin
             red   = 4'h0;
             green = 4'h0;
@@ -135,7 +149,58 @@ module vga_img_display #(
     assign green = (video_on)           ? 4'hF : 4'h0;
     assign blue  = (video_on && square) ? 4'hF : 4'h0;
 */
-  assign square = (x_pos >=  220 && x_pos < 420) && 
-                  (y_pos >= 140 && y_pos < 340);
+  assign square =  ((x_pos >= 230 - (100 * scale_img) && x_pos < 410 + (100 * scale_img)) && 
+                    (y_pos >= 200 - (30  * scale_img) && y_pos < 280 + (30  * scale_img)));
+//w - 100px - 10(border l) - 10(border_r)
+//h - 50px  - 5 (border up) - 5 (border down)
+
+//INTRUDER - 8
+    wire [4:0] lx  = (x_pos - 232) % 22; // Slot de 22px (20px literă + 2px spațiu)
+    wire [5:0] ly  = (y_pos - 210);        // Inălțime locală 0..59
+    wire [2:0] idx = (x_pos - 232) / 22; // Indexul literei (0..7)
+
+    // Condiție globală: suntem în zona de top-stânga unde scriem textul?
+    wire in_bounds = (y_pos < 60) && (x_pos < 188) && (lx < 20);
+
+    // Fiecare literă își evaluează forma în paralel:
+    // I (idx = 0)
+    wire is_I = (idx == 0) && ((ly <= 3) || (ly >= 56) || (lx >= 8 && lx <= 11));
+
+    // N (idx = 1)
+    wire is_N = (idx == 1) && ((lx <= 3) || (lx >= 16) || (ly >= 3*lx && ly <= 3*lx + 6));
+
+    // T (idx = 2)
+    wire is_T = (idx == 2) && ((ly <= 3) || (lx >= 8 && lx <= 11));
+
+    // R (idx = 3 și idx = 7)
+    wire is_R = (idx == 3 || idx == 7) && (
+        (lx <= 3) || 
+        (ly <= 3) || 
+        (ly >= 28 && ly <= 31) || 
+        (lx >= 16 && ly <= 31) || 
+        (ly >= 31 && lx >= 3 + (ly - 31) / 2 && lx <= 6 + (ly - 31) / 2)
+    );
+
+    // U (idx = 4)
+    wire is_U = (idx == 4) && ((lx <= 3 && ly <= 56) || (lx >= 16 && ly <= 56) || (ly >= 56));
+
+    // D (idx = 5)
+    wire is_D = (idx == 5) && (
+        (lx <= 3) || 
+        (ly <= 3 && lx <= 15) || 
+        (ly >= 56 && lx <= 15) || 
+        (lx >= 16 && ly >= 4 && ly <= 55)
+    );
+
+    // E (idx = 6)
+    wire is_E = (idx == 6) && (
+        (lx <= 3) || 
+        (ly <= 3) || 
+        (ly >= 28 && ly <= 31 && lx <= 15) || 
+        (ly >= 56)
+    );
+    wire in_text_area = (x_pos >= 232 && x_pos < 408) && (y_pos >= 210 && y_pos < 270);
+    // Ieșirea textului este 1 doar dacă suntem în interiorul unei litere (lx < 20 elimină spațiul de 2px dintre litere)
+    assign pixel_on = in_text_area && (lx < 20) && (is_I | is_N | is_T | is_R | is_U | is_D | is_E);
 
 endmodule

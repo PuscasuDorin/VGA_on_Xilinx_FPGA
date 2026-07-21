@@ -38,7 +38,7 @@ logic [5:0] tick_counter;
 logic       tick_400k;
 
 assign sio_d = (sio_d_out_en) ? sio_d_out : 1'bZ;
-assign is_ack_bit = (bit_index == 8 || bit_index == 17 || bit_index == 26);
+assign is_ack_bit = (bit_index == 8 || bit_index == 17 || bit_index == 26); // 8-camera addr; 17-settigns addr; 26-data  
 
 // --- CORECTIE READY TIMING ---
 // Ready este 1 doar cand suntem in IDLE si NU avem un semnal de start activ
