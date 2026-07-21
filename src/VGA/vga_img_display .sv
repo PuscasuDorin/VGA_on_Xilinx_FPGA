@@ -151,13 +151,19 @@ module vga_img_display #(
 */
   assign square =  ((x_pos >= 230 - (100 * scale_img) && x_pos < 410 + (100 * scale_img)) && 
                     (y_pos >= 200 - (30  * scale_img) && y_pos < 280 + (30  * scale_img)));
-//w - 100px - 10(border l) - 10(border_r)
-//h - 50px  - 5 (border up) - 5 (border down)
 
 //INTRUDER - 8
-    wire [4:0] lx  = (x_pos - 232) % 22; // Slot de 22px (20px literă + 2px spațiu)
-    wire [5:0] ly  = (y_pos - 210);        // Inălțime locală 0..59
-    wire [2:0] idx = (x_pos - 232) / 22; // Indexul literei (0..7)
+    wire [9:0] x_start = 232 - (88 * scale_img);
+    wire [9:0] y_start = 210 - (30 * scale_img);
+
+    // 2. Poziția relativă (întotdeauna POZITIVĂ, de la 0 în sus)
+    wire [9:0] x_rel = x_pos - x_start;
+    wire [9:0] y_rel = y_pos - y_start;
+
+    // 3. Calculul tău direct pe x_rel și y_rel (fără underflow!)
+    wire [4:0] lx  = (x_rel % (22 + 22 * scale_img)) / (scale_img + 1);
+    wire [5:0] ly  = y_rel / (scale_img + 1);
+    wire [2:0] idx = x_rel / (22 + 22 * scale_img);
 
     // Condiție globală: suntem în zona de top-stânga unde scriem textul?
     wire in_bounds = (y_pos < 60) && (x_pos < 188) && (lx < 20);
@@ -199,7 +205,8 @@ module vga_img_display #(
         (ly >= 28 && ly <= 31 && lx <= 15) || 
         (ly >= 56)
     );
-    wire in_text_area = (x_pos >= 232 && x_pos < 408) && (y_pos >= 210 && y_pos < 270);
+    wire in_text_area = (x_pos >= 232 - (88 * scale_img) && x_pos < 408 + (88 * scale_img)) && 
+                    (y_pos >= 210 - (30 * scale_img) && y_pos < 270 + (30 * scale_img));
     // Ieșirea textului este 1 doar dacă suntem în interiorul unei litere (lx < 20 elimină spațiul de 2px dintre litere)
     assign pixel_on = in_text_area && (lx < 20) && (is_I | is_N | is_T | is_R | is_U | is_D | is_E);
 
