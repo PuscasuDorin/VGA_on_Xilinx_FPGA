@@ -26,7 +26,7 @@
   - [Etapa 4 - Afișarea și mișcarea unui obiect pe ecran](#etapa-4---afișarea-și-mișcarea-unui-obiect-pe-ecran)
   - [Etapa 5 - Interfațarea senzorului de mișcare](#etapa-5---interfațarea-senzorului-de-mișcare)
   - [Etapa 6 - Integrarea camerei și afișarea imaginilor](#etapa-6---integrarea-camerei-și-afișarea-imaginilor)
-  - [Etapa 7 (Bonus) - Trimiterea imaginii captate prin UART la PC](#etapa-7-bonus---trimiterea-imaginii-captate-prin-uart-la-pc)
+  - [Etapa 7 (Bonus) - Trimiterea imaginii captate prin UARTv la PC](#etapa-7-bonus---trimiterea-imaginii-captate-prin-uartv-la-pc)
 
 ---
 
@@ -95,7 +95,7 @@ SCCB - Serial Camera Control Bus
 
 ---
 
-## Etapa 7 (Bonus) - Trimiterea imaginii captate prin UART la PC
+## Etapa 7 (Bonus) - Trimiterea imaginii captate prin UARTv la PC
 * **Obiectiv:** Transmiterea datelor binare ale imaginii salvate în memoria FPGA-ului (BRAM) către un calculator, utilizând protocolul de comunicație serială UART.
 * **Realizare:** -
 * **Dificultăți:** - 

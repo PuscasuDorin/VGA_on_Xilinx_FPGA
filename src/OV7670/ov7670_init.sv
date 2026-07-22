@@ -10,7 +10,7 @@ module ov7670_init (
 );
 
     // Total number of registers in the new initialization table
-    localparam TOTAL_REGS = 17;
+    localparam TOTAL_REGS = 16;
 
     // Finite State Machine (FSM)
     typedef enum logic [2:0] {
@@ -67,7 +67,7 @@ module ov7670_init (
         rom_regs[13] = '{addr: 8'h1A, data: 8'h7A}; // VSTOP
         rom_regs[14] = '{addr: 8'h03, data: 8'h0A}; // VREF
         rom_regs[15] = '{addr: 8'h56, data: 8'h39}; // Contrast
-        rom_regs[16] = '{addr: 8'h1E, data: 8'h10}; // Mirror
+        //rom_regs[16] = '{addr: 8'h1E, data: 8'h10}; // Mirror
         //om_regs[17] = '{addr: 8'h55, data: 8'h20}; // Brightness
         //rom_regs[18] = '{addr: 8'h57, data: 8'h50}; // Contrast center
     end
