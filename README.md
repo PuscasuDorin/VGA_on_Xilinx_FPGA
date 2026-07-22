@@ -101,3 +101,7 @@ SCCB - Serial Camera Control Bus
 * **Dificultăți:** - 
 * **Mod de rezolvare:** - 
 
+<figure>
+  <img src="doc/modules_block_diagram.png" alt="Diagrama FSM-SCCB">
+  <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
+</figure>
