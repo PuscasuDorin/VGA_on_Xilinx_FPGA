@@ -10,7 +10,7 @@ module ov7670_init (
 );
 
     // Total number of registers in the new initialization table
-    localparam TOTAL_REGS = 16;
+    localparam TOTAL_REGS = 15;
 
     // Finite State Machine (FSM)
     typedef enum logic [2:0] {
@@ -46,8 +46,8 @@ module ov7670_init (
         rom_regs[0]  = '{addr: 8'h12, data: 8'h80}; // COM7: Full Reset
         
         // 2. Format and resolution (QVGA, RGB565)
-        rom_regs[1]  = '{addr: 8'h12, data: 8'h14}; // COM7: QVGA + RGB
-        rom_regs[2]  = '{addr: 8'h40, data: 8'hD0}; // COM15: RGB565 standard, full range
+        rom_regs[1]  = '{addr: 8'h12, data: 8'h10}; // COM7: QVGA + RGB
+        rom_regs[2]  = '{addr: 8'h40, data: 8'hC0}; // COM15: RGB565 standard, full range
         rom_regs[3]  = '{addr: 8'h3A, data: 8'h04}; // TSLB: Bit alignment
         
         // 3. Enable internal hardware scaling in the camera (VGA -> QVGA)
@@ -66,7 +66,8 @@ module ov7670_init (
         rom_regs[12] = '{addr: 8'h19, data: 8'h02}; // VSTART
         rom_regs[13] = '{addr: 8'h1A, data: 8'h7A}; // VSTOP
         rom_regs[14] = '{addr: 8'h03, data: 8'h0A}; // VREF
-        rom_regs[15] = '{addr: 8'h56, data: 8'h39}; // Contrast
+        //rom_regs[15] = '{addr: 8'h41, data: 8'h38}; // COM16: Activează Denoise și Edge Enhancement
+        //rom_regs[15] = '{addr: 8'h56, data: 8'h39}; // Contrast
         //rom_regs[16] = '{addr: 8'h1E, data: 8'h10}; // Mirror
         //om_regs[17] = '{addr: 8'h55, data: 8'h20}; // Brightness
         //rom_regs[18] = '{addr: 8'h57, data: 8'h50}; // Contrast center

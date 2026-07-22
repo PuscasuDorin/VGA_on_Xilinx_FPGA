@@ -46,7 +46,38 @@ module vga_img_display #(
     assign rd_addr = sw ? ((y_scaled * 17'd320) + x_scaled) : (((y_pos - 10'd120) * 17'd320) + (x_pos - 10'd160));
 
     //Extract the 4 most significant bits from the grayscale value received from BRAM
-    logic [3:0] grey_4bit = pixel_data[7:4];
+    //logic [3:0] grey_4bit = pixel_data[7:4];
+    
+    //logic [3:0] grey_4bit;
+    // --- IMPLEMENTARE DITHERING (Bayer Matrix 2x2) ---
+    
+    logic [3:0] bayer_value;
+    logic [8:0] pixel_sum;  // 9 biți pentru a preveni overflow-ul
+    logic [3:0] grey_4bit;
+
+    // Generăm un "zgomot" matematic ordonat în funcție de poziția pixelului pe ecran.
+    // Folosim doar ultimul bit din x_pos și y_pos pentru a face un grid de 2x2.
+    always_comb begin
+        case ({y_pos[0], x_pos[0]})
+            2'b00: bayer_value = 4'd0;
+            2'b01: bayer_value = 4'd8;
+            2'b10: bayer_value = 4'd12;
+            2'b11: bayer_value = 4'd4;
+        endcase
+    end
+
+    // Adunăm "zgomotul" Bayer la pixelul brut (pe 8 biți) primit de la BRAM
+    assign pixel_sum = pixel_data + bayer_value;
+
+    // Extragem cei mai importanți 4 biți, având grijă la depășire (saturare la alb)
+    always_comb begin
+        if (pixel_sum > 9'd255) begin
+            grey_4bit = 4'hF;         // Dacă depășește limita, forțăm Alb maxim
+        end else begin
+            grey_4bit = pixel_sum[7:4]; // Altfel, luăm biții superiori
+        end
+    end
+    // --------------------------------------------------
 
     // Color display logic
     always_ff @(posedge clk) begin
