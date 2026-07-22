@@ -74,7 +74,7 @@ module vga_img_display #(
         if (pixel_sum > 9'd255) begin
             grey_4bit = 4'hF;         // Dacă depășește limita, forțăm Alb maxim
         end else begin
-            grey_4bit = pixel_sum[7:4]; // Altfel, luăm biții superiori
+            grey_4bit = pixel_sum[7:4];  // Altfel, luăm biții superiori
         end
     end
     // --------------------------------------------------
