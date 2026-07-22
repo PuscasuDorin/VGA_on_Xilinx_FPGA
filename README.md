@@ -105,3 +105,9 @@ SCCB - Serial Camera Control Bus
   <img src="doc/modules_block_diagram.png" alt="Diagrama FSM-SCCB">
   <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
 </figure>
+
+
+<figure>
+  <img src="doc/electric_diagram.png" alt="Diagrama FSM-SCCB">
+  <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
+</figure>

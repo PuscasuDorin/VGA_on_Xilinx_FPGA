@@ -35,7 +35,7 @@ module ov7670_capture (
     logic [7:0]  b_8;
     
     logic [15:0] grey_sum;
-    logic [7:0]  grey_val;
+    logic [7:0]  grey_val ;
 
     // Combinational assignments for calculating grayscale value
     // Standard RGB565: R (5 bits), G (6 bits), B (5 bits)
@@ -44,9 +44,9 @@ module ov7670_capture (
     assign b_5 = d[4:0];
     
     // Extend components to 8 bits by duplicating MSB into LSB
-    assign r_8 = {r_5, r_5[4:2]};
-    assign g_8 = {g_6, g_6[5:4]};
-    assign b_8 = {b_5, b_5[4:2]};
+    assign r_8 = {r_5, 3'b0};
+    assign g_8 = {g_6, 2'b0};
+    assign b_8 = {b_5, 3'b0};
    
     // FPGA optimized formula: Grey = (R*77 + G*150 + B*29) / 256
     assign grey_sum = (r_8 * 8'd77) + (g_8 * 8'd150) + (b_8 * 8'd29);
