@@ -56,7 +56,7 @@ module ov7670_sccb (
     end
 
 
-// 1. FSM STATE (state) - Controlează mașina de stări principală
+// 1. FSM STATE (state) - Controls the main state machine
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n                    )                                  state <= S_IDLE    ; else
         if ((state == S_IDLE) && start)                                  state <= S_START   ; else
@@ -77,7 +77,7 @@ module ov7670_sccb (
     end
 
 
-// 2. SUB-STEP COUNTER (sub_step) - Divizorul de frecvență intern (4 pași)
+// 2. SUB-STEP COUNTER (sub_step) - Internal frequency divider (4 steps)
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n                                  ) sub_step <= 2'd0           ; else
         if ((state == S_IDLE) && start              ) sub_step <= 2'd0           ; else
@@ -87,7 +87,7 @@ module ov7670_sccb (
     end
 
 
-// 3. BIT INDEX COUNTER (bit_index) - Numără biții transmiși
+// 3. BIT INDEX COUNTER (bit_index) - Counts transmitted bits
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n                    ) bit_index <= 5'd0            ; else
         if ((state == S_IDLE) && start) bit_index <= 5'd0            ; else
@@ -154,3 +154,14 @@ module ov7670_sccb (
     end
 
 endmodule
+
+
+/*
+  Each transmitted bit is divided into 4 sub-steps (0 to 3) driven by tick_400k
+  to ensure proper I2C/SCCB setup and hold timing:
+
+  - sub_step 0: SIO_C = 0 | SIO_D data bit is updated (Setup phase, clock is LOW).
+  - sub_step 1: SIO_C = 1 | SIO_C goes HIGH; SIO_D data line remains stable.
+  - sub_step 2: SIO_C = 1 | SIO_C stays HIGH; camera samples/reads the bit.
+  - sub_step 3: SIO_C = 0 | SIO_C goes LOW; bit period ends, preparing for next bit.
+*/

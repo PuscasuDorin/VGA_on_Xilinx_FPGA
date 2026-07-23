@@ -6,7 +6,7 @@ module vga_img_display #(
 )(
     input  logic        clk       ,
 
-    input  logic        sw        ,
+    input  logic        scale_img ,         //1 - 640x480 ; 0 - 320x240
     input  logic        pir_sensor,
 
     input  logic [9:0 ] x_pos     ,         // h_count directly from the VGA controller (0-639)
@@ -43,39 +43,38 @@ module vga_img_display #(
 
     //==================================================
 
-    logic scale_img      ;
-    logic in_image_bounds;
-
-    logic [9:0] x_scaled;
-    logic [9:0] y_scaled;
-    
-    // DITHERING variables    
-    logic [3:0] bayer_value;
-    logic [8:0] pixel_sum;  // 9 biți pentru a preveni overflow-ul
-    logic [3:0] grey_4bit;
+    logic       in_image_bounds    ;
+  
+    logic [9:0] x_scaled           ;
+    logic [9:0] y_scaled           ;
+            
+    // DITHERING variables            
+    logic [3:0] bayer_value        ;
+    logic [8:0] pixel_sum          ;  // 9 biți pentru a preveni overflow-ul
+    logic [3:0] grey_4bit          ;
 
     //'INTRUDER' text variables
-    logic I            ;
-    logic N            ;
-    logic T            ;
-    logic R            ;
-    logic U            ;
-    logic D            ;
-    logic E            ;
+    logic       I                  ;
+    logic       N                  ;
+    logic       T                  ;
+    logic       R                  ;
+    logic       U                  ;
+    logic       D                  ;
+    logic       E                  ;
+      
+    logic       text_pixel_on      ;
+      
+    logic [9:0] x_start            ; 
+    logic [9:0] y_start            ; 
+      
+    logic [9:0] x_rel              ;  //x relative possition
+    logic [9:0] y_rel              ;  //y relative possition
 
-    logic [9:0] x_start; 
-    logic [9:0] y_start; 
-
-    logic [9:0] x_rel  ;    //x relative possition
-    logic [9:0] y_rel  ;    //y relative possition
-
-    logic [4:0] lx     ;    // Local x-coordinate inside the letter's bounding box
-    logic [5:0] ly     ;    // Local x-coordinate inside the letter's bounding box
-    logic [2:0] idx    ;    // Index of the current letter along the x-axis (0 to 7)
+    logic [4:0] lx                 ;  // Local x-coordinate inside the letter's bounding box
+    logic [5:0] ly                 ;  // Local x-coordinate inside the letter's bounding box
+    logic [2:0] idx                ;  // Index of the current letter along the x-axis (0 to 7)
 
     //==================================================
-    
-    assign scale_img = sw; //1 - 640x480 ; 0 - 320x240
 
     // Detect if we are inside the image boundaries (scales dynamically based on the switch; 640x480 or 320x240)
     assign in_image_bounds = (x_pos >= 0 + (CENTER_OFFSET_X * !scale_img) && x_pos < H_ACTIVE_VIDEO - (CENTER_OFFSET_X * !scale_img)) && 
@@ -86,14 +85,13 @@ module vga_img_display #(
     assign y_scaled = y_pos >> scale_img; 
 
     // Calculate linear address in BRAM based on the scaling mode | Address = (Y * Image_Width) + X
-    assign rd_addr = sw ? ((y_scaled * H_CAMERA) + x_scaled) : (((y_pos - CENTER_OFFSET_Y) * H_CAMERA) + (x_pos - CENTER_OFFSET_X));
+    assign rd_addr = scale_img ? ((y_scaled * H_CAMERA) + x_scaled) : (((y_pos - CENTER_OFFSET_Y) * H_CAMERA) + (x_pos - CENTER_OFFSET_X));
 
 
 
-    // --- IMPLEMENTARE DITHERING (Bayer Matrix 2x2) ---
-
-    // Generăm un "zgomot" matematic ordonat în funcție de poziția pixelului pe ecran.
-    // Folosim doar ultimul bit din x_pos și y_pos pentru a face un grid de 2x2.
+    // --- DITHERING IMPLEMENTATION (2x2 Bayer Matrix) ---
+    // Generate an ordered mathematical "noise" based on the pixel's screen position.
+    // Use only the LSB of x_pos and y_pos to form a 2x2 repeating grid.
     always_comb begin
         case ({y_pos[0], x_pos[0]})
             2'b00: bayer_value = 4'd0 ;
@@ -103,41 +101,24 @@ module vga_img_display #(
         endcase
     end
 
-    // Adunăm "zgomotul" Bayer la pixelul brut (pe 8 biți) primit de la BRAM
+    // Add the Bayer "noise" to the raw 8-bit pixel received from BRAM
     assign pixel_sum = pixel_data + bayer_value;
 
     // Extract the top 4 bits, carefully handling overflow (clipping to pure white)
     always_comb begin
-        if (pixel_sum > 9'd255) begin
-            grey_4bit = 4'hF;         // If overflow occurs, force maximum White
-        end else begin
-            grey_4bit = pixel_sum[7:4];  // Otherwise keep the upper 4 bits
-        end
+        if (pixel_sum > 9'd255) grey_4bit = 4'hF          ; else        // If overflow occurs, force maximum White
+                                grey_4bit = pixel_sum[7:4];              // Otherwise keep the upper 4 bits
     end
-    // --------------------------------------------------
 
     // Color display logic
     always_ff @(posedge clk) begin
         if (video_on && in_image_bounds ) begin
-            if((red_square || pixel_on) && pir_sensor) begin
-                red = 4'hF;
-            end else begin
-                red   = grey_4bit;
-            end
-
-            if(pixel_on && pir_sensor) begin
-                green = 4'hF;
-            end else begin
-                green = grey_4bit;
-            end
-
-            if(pixel_on && pir_sensor) begin
-                blue = 4'hF;
-            end else begin
-                blue  = grey_4bit;
-            end
-            
-            
+            if((red_square || text_pixel_on) && pir_sensor) red = 4'hF       ; else 
+                                                            red = grey_4bit  ;
+            if(text_pixel_on && pir_sensor                ) green = 4'hF     ; else
+                                                            green = grey_4bit;
+            if(text_pixel_on && pir_sensor                ) blue = 4'hF      ; else
+                                                            blue  = grey_4bit;
         end else begin
             red   = 4'h0;
             green = 4'h0;
@@ -145,13 +126,8 @@ module vga_img_display #(
         end
     end
 
-
-
-
-  assign red_square =  ((x_pos >= BOX_X_START - (100 * scale_img) && (x_pos < (BOX_X_START + BOX_WIDTH ) + (100 * scale_img))) && 
-                        (y_pos >= BOX_Y_START - (30  * scale_img) && (y_pos < (BOX_Y_START + BOX_HEIGHT) + (30  * scale_img)))   );
-
-
+    assign red_square = ((x_pos >= BOX_X_START - (100 * scale_img) && (x_pos < (BOX_X_START + BOX_WIDTH ) + (100 * scale_img))) && 
+                         (y_pos >= BOX_Y_START - (30  * scale_img) && (y_pos < (BOX_Y_START + BOX_HEIGHT) + (30  * scale_img)))   );
 
     // Calculate the top-left corner of the entire text block
     assign x_start = TEXT_X_START - (88 * scale_img);
@@ -165,8 +141,6 @@ module vga_img_display #(
     assign ly  = y_rel / (scale_img + 1);                                                           
     assign idx = x_rel / (TOTAL_CHAR_W + (TOTAL_CHAR_W * scale_img));                           
     
-
-    // Fiecare literă își evaluează forma în paralel:
     // I (idx = 0)
     assign I = (idx == 0) && ((ly <= 3) || (ly >= 56) || (lx >= 8 && lx <= 11));
 
@@ -209,6 +183,6 @@ module vga_img_display #(
                           (y_pos >= 210 - (30 * scale_img) && y_pos < 270 + (30 * scale_img));
     
     // The pixel is drawn white only if we are inside a specific letter bounds.
-    assign pixel_on = in_text_area && (lx < CHAR_ACTIVE_W) && (I | N | T | R | U | D | E);
+    assign text_pixel_on = in_text_area && (lx < CHAR_ACTIVE_W) && (I | N | T | R | U | D | E);
 
 endmodule

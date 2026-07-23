@@ -1,5 +1,6 @@
-# VGA & Sensor Integration Project
+# FPGA Video Surveillance System with PIR Motion Detection & VGA Intruder Alert
 ### Autor: Pușcașu Dorin
+<!--# Sistem de Supraveghere Video pe FPGA cu Detecție PIR și Alertă VGA-->
 ---
 
 ## Istoric Revizii
@@ -8,12 +9,46 @@
 | :---:    | :---:      | :---:          | :---      |
 | **v0.1** | 07.07.2026 | Pușcașu Dorin | *Draft*   |
 | **v0.2** | 10.07.2026 | Pușcașu Dorin | *Am îmbunătățit         documentația și am implementat etapele: 2, 3, 4*    |
+| **v0.3** | 23.07.2026 | Pușcașu Dorin | *Am îmbunătățit         documentația și am implementat etapele: 5, 6*    |
 
 ---
 
+<figure>
+  <img src="doc/electric_diagram.png" alt="Diagrama FSM-SCCB">
+  <figcaption align="center"><b>Fig. 1:</b> Schema electrica</figcaption>
+</figure>
+
+---
+<figure>
+  <img src="doc/modules_block_diagram.png" alt="Diagrama FSM-SCCB">
+  <figcaption align="center"><b>Fig. 2:</b> Arhitectura Sistemului OV7670 - VGA</figcaption>
+</figure>
+
+---
+
+<table>
+  <tr>
+    <!-- Coloana stânga: Tabelul de resurse -->
+    <td valign="top">
+
+| Resource | Utilization | Available | Utilization % |
+| :--- | ---: | ---: | ---: |
+| LUT | 520 | 20800 | 2.50 |
+| FF | 163 | 41600 | 0.39 |
+| BRAM | 19 | 50 | 38.00 |
+| DSP | 2 | 90 | 2.22 |
+| IO | 35 | 106 | 33.02 |
+| BUFG | 3 | 32 | 9.38 |
+| MMCM | 1 | 5 | 20.00 |
+
+<img src="doc/FPGA_timing.png" alt="FPGA Setup Timing" width="400">
+  </tr>
+</table>
+
+---
 
 ##  Cuprins
-- [VGA \& Sensor Integration Project](#vga--sensor-integration-project)
+- [FPGA Video Surveillance System with PIR Motion Detection \& VGA Intruder Alert](#fpga-video-surveillance-system-with-pir-motion-detection--vga-intruder-alert)
     - [Autor: Pușcașu Dorin](#autor-pușcașu-dorin)
   - [Istoric Revizii](#istoric-revizii)
   - [Cuprins](#cuprins)
@@ -44,7 +79,10 @@
 
 ---
 ## Etapa 1 - Documentația proiectului 
-* **Obiectiv:** Stabilirea temei, a obiectivelor și a arhitecturii inițiale.
+* **Obiectiv:** Definirea temei, a cerințelor funcționale și proiectarea arhitecturii de ansamblu a sistemului pe FPGA, având ca repere:
+* **Documentarea protocoalelor de comunicație:** SCCB pentru configurarea camerei OV7670 și standardul VGA pentru generarea semnalelor de sincronizare (`Hsync`, `Vsync`).
+* **Dimensionarea memoriei interne Block RAM (BRAM)** în raport cu rezoluția imaginii (QVGA) și formatul de reprezentare a pixelilor.
+* **Proiectarea schemei bloc de nivel înalt (Top-Level)** și definirea interfețelor dintre module (captură, memorie, afișare, achiziție senzor PIR și gestiune ceasuri).
 
 ---
 
@@ -75,22 +113,31 @@
 
 ## Etapa 5 - Integrarea camerei și afișarea imaginilor
 * **Obiectiv:** Preluarea unui flux video de la o cameră externă (sau imagini predefinite), stocarea datelor într-o memorie internă și randarea lor dinamică pe VGA.
-* **Realizare:** -
-* **Dificultăți:** afisarea imaginii pe ecran, imaginea afisata nu arata bine
-* **Mod de rezolvare:** -
-
+* **Realizare:** Implementarea modulelor de control pentru camera OV7670 (ov7670_sccb, ov7670_init, ov7670_capture). Datele ale pixelilor recepționați de la cameră pe magistrala ov7670_data sunt capturate sincron pe frontul PCLK și stocate într-o memorie internă Dual-Port BRAM (frame_buffer). În paralel, modulul de afișare VGA (vga_controller / vga_img_display) citește adresele din BRAM sincronizat cu ceasul de afișare și randează fluxul video în timp real pe monitor.
+* **Dificultăți:** Afișarea imaginii pe ecran prezenta artefacte (imagine distorsionată, culori inversate/greșite, liniamente defazate sau imagine neclară) din cauza neconcordanțelor de timing la achiziția pixelilor și a configurării greșite a formatului de ieșire al camerei.
+* **Mod de rezolvare:** Am refacut implementarea protocolului SCCB, Am Ajustat tabelul de registre de inițializare a camerei (setarea formatului corect de pixeli și activarea scalării la rezoluția dorită, setarea formatului de culoare in YUV in loc de RGB) și am corectat logica din modulul ov7670_capture pentru a asambla corect cei 2 octeți corespunzători fiecărui pixel.
+---
 <figure>
   <img src="doc/FSM_SCCB_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
+  <figcaption align="center"><b>Fig. 3:</b> Diagrama FSM-SCCB</figcaption>
 </figure>
 
 SCCB - Serial Camera Control Bus
 
 ---
 
+<figure>
+  <img src="doc/FSM_CAMERA_INIT_diagram.png" alt="Diagrama FSM-SCCB">
+  <figcaption align="center"><b>Fig. 4:</b> Diagrama FSM_OV7670_INIT</figcaption>
+</figure>
+
+
+
+---
+
 ## Etapa 6 - Interfațarea senzorului de mișcare
 * **Obiectiv:** Conectarea senzorului de mișcare (PIR) la FPGA și utilizarea stării acestuia pentru a influența memoria BRAM a FPGA-ului care stocheaza imaginea primita de la camera.
-* **Realizare:** -
+* **Realizare:** Conectarea ieșirii digitale a senzorului PIR la un pin de intrare al FPGA-ului (pir_sensor). Preluarea stării senzorului și integrarea acesteia în logica de control a sistemului pentru a acționa asupra memoriei frame_buffer (de exemplu: oprirea scrierii în BRAM pentru a „îngheța”/salva cadrul în momentul detectării mișcării sau modificarea modulului de afișare VGA).
 * **Dificultăți:** -
 * **Mod de rezolvare:** -
 
@@ -102,13 +149,3 @@ SCCB - Serial Camera Control Bus
 * **Dificultăți:** - 
 * **Mod de rezolvare:** - 
 
-<figure>
-  <img src="doc/modules_block_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
-</figure>
-
-
-<figure>
-  <img src="doc/electric_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 1:</b> Diagrama FSM-SCCB</figcaption>
-</figure>

@@ -2,13 +2,14 @@ module ov7670_capture (
     input  logic        pclk           ,                                                        // Camera Pixel Clock (PCLK)
     input  logic        vsync          ,                                                        // Camera Vertical Sync (VSYNC)
     input  logic        href           ,                                                        // Camera Horizontal Reference (HREF)
-    input  logic [7:0 ]  d             ,                                                        // 8-bit camera data bus (D[7:0])
+    input  logic [7:0 ] d             ,                                                        // 8-bit camera data bus (D[7:0])
     input  logic        camera_ready   ,                                                        // Initialization module complete signal (done)
     
     output logic [16:0] bram_addr      ,                                                        // BRAM write address (0 - 76799)
-    output logic [7:0 ]  bram_data_grey,                                                        // 8-bit grayscale data sent to BRAM
+    output logic [7:0 ] bram_data_grey,                                                        // 8-bit grayscale data sent to BRAM
     output logic        bram_we                                                                 // BRAM Write Enable
 );
+    localparam BRAM_MEM_SIZE = 76799;
 
     logic       cycle     ; 
     logic [7:0] first_byte;
@@ -42,11 +43,11 @@ module ov7670_capture (
 
     // 5. MEMORY ADDRESS: Increments linearly for each saved pixel
     always_ff @(posedge pclk) begin
-        if (vsync                  ) bram_addr <= '0              ; else                       // Reset address to 0 at the start of a new frame
+        if (vsync                      ) bram_addr <= '0              ; else                   // Reset address to 0 at the start of a new frame
         if (camera_ready         && 
             href                 && 
             (cycle == 1'b1)      &&
-            (bram_addr < 17'd76799)) bram_addr <= bram_addr + 1'b1;                            // Increment address only when a complete pixel is written
+            (bram_addr < BRAM_MEM_SIZE)) bram_addr <= bram_addr + 1'b1;                        // Increment address only when a complete pixel is written
     end
 
 endmodule
