@@ -4,77 +4,114 @@ module vga_img_display #(
     parameter H_ACTIVE_VIDEO = 640,
     parameter V_ACTIVE_VIDEO = 480
 )(
-    input  logic        clk,
-    input  logic [9:0]  x_pos,       // h_count directly from the VGA controller (0-639)
-    input  logic [9:0]  y_pos,       // v_count directly from the VGA controller (0-479)
-    input  logic        video_on,    // active video region enable signal
-    input  logic        vsync,       // vertical synchronization signal (optional)
+    input  logic        clk       ,
 
-    input  logic [7:0] pixel_data,  // Pixel received from BRAM
-    output logic [16:0] rd_addr,     // 17-bit address sent to BRAM (0-76799)
-
-    input  logic        sw,
-
+    input  logic        sw        ,
     input  logic        pir_sensor,
 
-    // 4-bit colors physically sent to the Basys 3 board VGA DAC
-    output logic [3:0]  red,
-    output logic [3:0]  green,
-    output logic [3:0]  blue
+    input  logic [9:0 ] x_pos     ,         // h_count directly from the VGA controller (0-639)
+    input  logic [9:0 ] y_pos     ,         // v_count directly from the VGA controller (0-479)
+    input  logic        video_on  ,         // active video region enable signal
+    input  logic        vsync     ,         // vertical synchronization signal (optional)
+
+    input  logic [7:0 ] pixel_data,         // Pixel received from BRAM
+    output logic [16:0] rd_addr   ,         // 17-bit address sent to BRAM (0-76799)
+
+    output logic [3:0]  red       ,         //vga red
+    output logic [3:0]  green     ,         //vga green
+    output logic [3:0]  blue                //vga blue
 );
-    logic scale_img;
+    // Camera resolution parameters
+    localparam H_CAMERA = 320;
+    localparam V_CAMERA = 240;
+
+    // Red warning box coordinates
+    localparam BOX_X_START    = 230;
+    localparam BOX_Y_START    = 200;
+    localparam BOX_WIDTH      = 180; // 410 - 230 = 180 pixels wide
+    localparam BOX_HEIGHT     = 80 ;  // 280 - 200 = 80 pixels high
+
+    // 'INTRUDER' text position and grid parameters
+    localparam TEXT_X_START   = 232;
+    localparam TEXT_Y_START   = 210;
+    localparam TOTAL_CHAR_W   = 22 ;  // Total width of a letter + gap (total_letter_px = 22px - 1px_l_gap - 1px_r_gap
+    localparam CHAR_ACTIVE_W  = 20 ;   // Drawable width of the letter (leaves a 2px gap)
+
+    // Calculate offsets to center the camera image on the screen
+    localparam CENTER_OFFSET_X = (H_ACTIVE_VIDEO - H_CAMERA) >> 1; // (640 - 320) / 2 = 160
+    localparam CENTER_OFFSET_Y = (V_ACTIVE_VIDEO - V_CAMERA) >> 1; // (480 - 240) / 2 = 120
+
+    //==================================================
+
+    logic scale_img      ;
     logic in_image_bounds;
 
     logic [9:0] x_scaled;
-    logic [9:0] y_scaled ;
-    // Detect if we are inside the 320x240 image boundaries
-    //wire in_image_bounds = (x_pos >= 160 && x_pos < 480) && 
-    //                       (y_pos >= 120 && y_pos < 360);
-
+    logic [9:0] y_scaled;
     
-    assign scale_img = sw; //1 - 640x480 ; 0 - 320x240
-
-    // Detect if we are inside the 320x240 image boundaries
-    assign in_image_bounds = (x_pos >= 0 + (160 * !scale_img) && x_pos < 640 - (160 * !scale_img)) && 
-                            (y_pos >= 0 + (120 * !scale_img) && y_pos < 480 - (120 * !scale_img));
-
-    // Divide physical screen coordinates by 2 (right shift by 1 bit)
-    assign x_scaled = x_pos >> scale_img; 
-    assign y_scaled = y_pos >> scale_img; 
-
-    // Calculate linear address in BRAM (320x240 virtual resolution)
-    assign rd_addr = sw ? ((y_scaled * 17'd320) + x_scaled) : (((y_pos - 10'd120) * 17'd320) + (x_pos - 10'd160));
-
-    //Extract the 4 most significant bits from the grayscale value received from BRAM
-    //logic [3:0] grey_4bit = pixel_data[7:4];
-    
-    //logic [3:0] grey_4bit;
-    // --- IMPLEMENTARE DITHERING (Bayer Matrix 2x2) ---
-    
+    // DITHERING variables    
     logic [3:0] bayer_value;
     logic [8:0] pixel_sum;  // 9 biți pentru a preveni overflow-ul
     logic [3:0] grey_4bit;
+
+    //'INTRUDER' text variables
+    logic I            ;
+    logic N            ;
+    logic T            ;
+    logic R            ;
+    logic U            ;
+    logic D            ;
+    logic E            ;
+
+    logic [9:0] x_start; 
+    logic [9:0] y_start; 
+
+    logic [9:0] x_rel  ;    //x relative possition
+    logic [9:0] y_rel  ;    //y relative possition
+
+    logic [4:0] lx     ;    // Local x-coordinate inside the letter's bounding box
+    logic [5:0] ly     ;    // Local x-coordinate inside the letter's bounding box
+    logic [2:0] idx    ;    // Index of the current letter along the x-axis (0 to 7)
+
+    //==================================================
+    
+    assign scale_img = sw; //1 - 640x480 ; 0 - 320x240
+
+    // Detect if we are inside the image boundaries (scales dynamically based on the switch; 640x480 or 320x240)
+    assign in_image_bounds = (x_pos >= 0 + (CENTER_OFFSET_X * !scale_img) && x_pos < H_ACTIVE_VIDEO - (CENTER_OFFSET_X * !scale_img)) && 
+                             (y_pos >= 0 + (CENTER_OFFSET_Y * !scale_img) && y_pos < V_ACTIVE_VIDEO - (CENTER_OFFSET_Y * !scale_img));
+
+    // Divide physical screen coordinates by 2
+    assign x_scaled = x_pos >> scale_img; 
+    assign y_scaled = y_pos >> scale_img; 
+
+    // Calculate linear address in BRAM based on the scaling mode | Address = (Y * Image_Width) + X
+    assign rd_addr = sw ? ((y_scaled * H_CAMERA) + x_scaled) : (((y_pos - CENTER_OFFSET_Y) * H_CAMERA) + (x_pos - CENTER_OFFSET_X));
+
+
+
+    // --- IMPLEMENTARE DITHERING (Bayer Matrix 2x2) ---
 
     // Generăm un "zgomot" matematic ordonat în funcție de poziția pixelului pe ecran.
     // Folosim doar ultimul bit din x_pos și y_pos pentru a face un grid de 2x2.
     always_comb begin
         case ({y_pos[0], x_pos[0]})
-            2'b00: bayer_value = 4'd0;
-            2'b01: bayer_value = 4'd8;
+            2'b00: bayer_value = 4'd0 ;
+            2'b01: bayer_value = 4'd8 ;
             2'b10: bayer_value = 4'd12;
-            2'b11: bayer_value = 4'd4;
+            2'b11: bayer_value = 4'd4 ;
         endcase
     end
 
     // Adunăm "zgomotul" Bayer la pixelul brut (pe 8 biți) primit de la BRAM
     assign pixel_sum = pixel_data + bayer_value;
 
-    // Extragem cei mai importanți 4 biți, având grijă la depășire (saturare la alb)
+    // Extract the top 4 bits, carefully handling overflow (clipping to pure white)
     always_comb begin
         if (pixel_sum > 9'd255) begin
-            grey_4bit = 4'hF;         // Dacă depășește limita, forțăm Alb maxim
+            grey_4bit = 4'hF;         // If overflow occurs, force maximum White
         end else begin
-            grey_4bit = pixel_sum[7:4];  // Altfel, luăm biții superiori
+            grey_4bit = pixel_sum[7:4];  // Otherwise keep the upper 4 bits
         end
     end
     // --------------------------------------------------
@@ -82,8 +119,7 @@ module vga_img_display #(
     // Color display logic
     always_ff @(posedge clk) begin
         if (video_on && in_image_bounds ) begin
-            // To obtain shades of gray, the color channels must be IDENTICAL
-            if((square || pixel_on) && pir_sensor) begin
+            if((red_square || pixel_on) && pir_sensor) begin
                 red = 4'hF;
             end else begin
                 red   = grey_4bit;
@@ -109,108 +145,39 @@ module vga_img_display #(
         end
     end
 
-/*
-    localparam SHAPE_HALF_SIZE = 50;
 
-    logic triangle;
-    logic square;
+
+
+  assign red_square =  ((x_pos >= BOX_X_START - (100 * scale_img) && (x_pos < (BOX_X_START + BOX_WIDTH ) + (100 * scale_img))) && 
+                        (y_pos >= BOX_Y_START - (30  * scale_img) && (y_pos < (BOX_Y_START + BOX_HEIGHT) + (30  * scale_img)))   );
+
+
+
+    // Calculate the top-left corner of the entire text block
+    assign x_start = TEXT_X_START - (88 * scale_img);
+    assign y_start = TEXT_Y_START - (30 * scale_img);
+
+    assign x_rel = x_pos - x_start; // Always positive when inside the text area
+    assign y_rel = y_pos - y_start; // Always positive when inside the text area
+
+    // Local coordinates mapping (adjusts dynamically based on scaling)
+    assign lx  = (x_rel % (TOTAL_CHAR_W + (TOTAL_CHAR_W * scale_img))) / (scale_img + 1);       
+    assign ly  = y_rel / (scale_img + 1);                                                           
+    assign idx = x_rel / (TOTAL_CHAR_W + (TOTAL_CHAR_W * scale_img));                           
     
-    logic frame_tick;  
-
-    //SQUARE MOTION REGISTERS
-    logic [9:0] box_x; //moving objext x coord
-    logic [9:0] box_y; //moving objext y coord
-    logic       dir_x; // 0 = Left, 1 = Right
-    logic       dir_y; // 0 = Up, 1 = Down
-    logic [2:0] speed; //object speed in space
-
-    //TRIANGLE COORDINATES
-    // Top:            X = 320, Y = 140
-    // Bottom-left:    X = 220, Y = 340
-    // Bottom-right:   X = 420, Y = 340
-    // Slope 2/1: for every 1 pixel horizontally, move 2 pixels vertically  
-    assign triangle = (y_pos >= 140) && (y_pos < 340)    && 
-                      (y_pos >= 170 + 2 * (320 - x_pos)) &&
-                      (y_pos >= 170 + 2 * (x_pos - 320)); 
-
-    assign square = (x_pos >= box_x - SHAPE_HALF_SIZE && x_pos < box_x + SHAPE_HALF_SIZE) && 
-                    (y_pos >= box_y - SHAPE_HALF_SIZE && y_pos < box_y + SHAPE_HALF_SIZE);
-
-
-    assign speed = (sw[0]) ? 3 : 1;
-
-    // Detect the falling edge of vsync (occurs once per completed frame)
-    logic vsync_reg;
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (~rst_n) vsync_reg <= 1'b1;
-        else        vsync_reg <= vsync;
-    end
-
-    assign frame_tick = (vsync_reg && !vsync); // Falling edge detector
-
-    //SQUARE MOTION AND BOUNCE
-    // Edge bounce logic
-    always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                                                           dir_x <= 1'b1; else
-        if(frame_tick && box_x <= SHAPE_HALF_SIZE + speed + 1)               dir_x <= 1'b1; else
-        if(frame_tick && box_x + SHAPE_HALF_SIZE + speed >= H_ACTIVE_VIDEO ) dir_x <= 1'b0;
-    end
-
-    always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)                                                          dir_y <= 1'b1; else
-        if(frame_tick && box_y <= SHAPE_HALF_SIZE + speed + 1)              dir_y <= 1'b1; else
-        if(frame_tick && box_y + SHAPE_HALF_SIZE + speed >= V_ACTIVE_VIDEO) dir_y <= 1'b0;
-    end
-
-    // Move the box
-    always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)               box_x <= 10'd10   ; else
-        if(frame_tick && dir_x)  box_x <= box_x + speed; else
-        if(frame_tick && ~dir_x) box_x <= box_x - speed;
-    end
-
-    always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n)               box_y <= 10'd10       ; else
-        if(frame_tick && dir_y)  box_y <= box_y + speed; else
-        if(frame_tick && ~dir_y) box_y <= box_y - speed;
-    end
-
-    //RGB output logic 
-    assign red   = (video_on && square) ? 4'hF : 4'h0             ;              
-    assign green = (video_on)           ? 4'hF : 4'h0;
-    assign blue  = (video_on && square) ? 4'hF : 4'h0;
-*/
-  assign square =  ((x_pos >= 230 - (100 * scale_img) && x_pos < 410 + (100 * scale_img)) && 
-                    (y_pos >= 200 - (30  * scale_img) && y_pos < 280 + (30  * scale_img)));
-
-//INTRUDER - 8
-    wire [9:0] x_start = 232 - (88 * scale_img);
-    wire [9:0] y_start = 210 - (30 * scale_img);
-
-    // 2. Poziția relativă (întotdeauna POZITIVĂ, de la 0 în sus)
-    wire [9:0] x_rel = x_pos - x_start;
-    wire [9:0] y_rel = y_pos - y_start;
-
-    // 3. Calculul tău direct pe x_rel și y_rel (fără underflow!)
-    wire [4:0] lx  = (x_rel % (22 + 22 * scale_img)) / (scale_img + 1);
-    wire [5:0] ly  = y_rel / (scale_img + 1);
-    wire [2:0] idx = x_rel / (22 + 22 * scale_img);
-
-    // Condiție globală: suntem în zona de top-stânga unde scriem textul?
-    wire in_bounds = (y_pos < 60) && (x_pos < 188) && (lx < 20);
 
     // Fiecare literă își evaluează forma în paralel:
     // I (idx = 0)
-    wire is_I = (idx == 0) && ((ly <= 3) || (ly >= 56) || (lx >= 8 && lx <= 11));
+    assign I = (idx == 0) && ((ly <= 3) || (ly >= 56) || (lx >= 8 && lx <= 11));
 
     // N (idx = 1)
-    wire is_N = (idx == 1) && ((lx <= 3) || (lx >= 16) || (ly >= 3*lx && ly <= 3*lx + 6));
+    assign N = (idx == 1) && ((lx <= 3) || (lx >= 16) || (ly >= 3*lx && ly <= 3*lx + 6));
 
     // T (idx = 2)
-    wire is_T = (idx == 2) && ((ly <= 3) || (lx >= 8 && lx <= 11));
+    assign T = (idx == 2) && ((ly <= 3) || (lx >= 8 && lx <= 11));
 
     // R (idx = 3 și idx = 7)
-    wire is_R = (idx == 3 || idx == 7) && (
+    assign R = (idx == 3 || idx == 7) && (
         (lx <= 3) || 
         (ly <= 3) || 
         (ly >= 28 && ly <= 31) || 
@@ -219,10 +186,10 @@ module vga_img_display #(
     );
 
     // U (idx = 4)
-    wire is_U = (idx == 4) && ((lx <= 3 && ly <= 56) || (lx >= 16 && ly <= 56) || (ly >= 56));
+    assign U = (idx == 4) && ((lx <= 3 && ly <= 56) || (lx >= 16 && ly <= 56) || (ly >= 56));
 
     // D (idx = 5)
-    wire is_D = (idx == 5) && (
+    assign D = (idx == 5) && (
         (lx <= 3) || 
         (ly <= 3 && lx <= 15) || 
         (ly >= 56 && lx <= 15) || 
@@ -230,15 +197,18 @@ module vga_img_display #(
     );
 
     // E (idx = 6)
-    wire is_E = (idx == 6) && (
+    assign E = (idx == 6) && (
         (lx <= 3) || 
         (ly <= 3) || 
         (ly >= 28 && ly <= 31 && lx <= 15) || 
         (ly >= 56)
     );
-    wire in_text_area = (x_pos >= 232 - (88 * scale_img) && x_pos < 408 + (88 * scale_img)) && 
-                    (y_pos >= 210 - (30 * scale_img) && y_pos < 270 + (30 * scale_img));
-    // Ieșirea textului este 1 doar dacă suntem în interiorul unei litere (lx < 20 elimină spațiul de 2px dintre litere)
-    assign pixel_on = in_text_area && (lx < 20) && (is_I | is_N | is_T | is_R | is_U | is_D | is_E);
+
+    // Define the bounding box specifically for the text area
+    assign in_text_area = (x_pos >= 232 - (88 * scale_img) && x_pos < 408 + (88 * scale_img)) && 
+                          (y_pos >= 210 - (30 * scale_img) && y_pos < 270 + (30 * scale_img));
+    
+    // The pixel is drawn white only if we are inside a specific letter bounds.
+    assign pixel_on = in_text_area && (lx < CHAR_ACTIVE_W) && (I | N | T | R | U | D | E);
 
 endmodule

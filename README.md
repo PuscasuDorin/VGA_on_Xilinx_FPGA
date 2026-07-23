@@ -24,8 +24,8 @@
   - [Etapa 2 - Proiectarea și simularea controlerului VGA](#etapa-2---proiectarea-și-simularea-controlerului-vga)
   - [Etapa 3 - Implementarea pe hardware](#etapa-3---implementarea-pe-hardware)
   - [Etapa 4 - Afișarea și mișcarea unui obiect pe ecran](#etapa-4---afișarea-și-mișcarea-unui-obiect-pe-ecran)
-  - [Etapa 5 - Interfațarea senzorului de mișcare](#etapa-5---interfațarea-senzorului-de-mișcare)
-  - [Etapa 6 - Integrarea camerei și afișarea imaginilor](#etapa-6---integrarea-camerei-și-afișarea-imaginilor)
+  - [Etapa 5 - Integrarea camerei și afișarea imaginilor](#etapa-5---integrarea-camerei-și-afișarea-imaginilor)
+  - [Etapa 6 - Interfațarea senzorului de mișcare](#etapa-6---interfațarea-senzorului-de-mișcare)
   - [Etapa 7 (Bonus) - Trimiterea imaginii captate prin UARTv la PC](#etapa-7-bonus---trimiterea-imaginii-captate-prin-uartv-la-pc)
 
 ---
@@ -72,18 +72,11 @@
 
 ---
 
-## Etapa 5 - Interfațarea senzorului de mișcare
-* **Obiectiv:** Conectarea senzorului de mișcare (PIR) la FPGA și utilizarea stării acestuia pentru a influența elementele grafice de pe ecran.
-* **Realizare:** -
-* **Dificultăți:** -
-* **Mod de rezolvare:** -
 
----
-
-## Etapa 6 - Integrarea camerei și afișarea imaginilor
+## Etapa 5 - Integrarea camerei și afișarea imaginilor
 * **Obiectiv:** Preluarea unui flux video de la o cameră externă (sau imagini predefinite), stocarea datelor într-o memorie internă și randarea lor dinamică pe VGA.
 * **Realizare:** -
-* **Dificultăți:** -
+* **Dificultăți:** afisarea imaginii pe ecran, imaginea afisata nu arata bine
 * **Mod de rezolvare:** -
 
 <figure>
@@ -92,6 +85,14 @@
 </figure>
 
 SCCB - Serial Camera Control Bus
+
+---
+
+## Etapa 6 - Interfațarea senzorului de mișcare
+* **Obiectiv:** Conectarea senzorului de mișcare (PIR) la FPGA și utilizarea stării acestuia pentru a influența memoria BRAM a FPGA-ului care stocheaza imaginea primita de la camera.
+* **Realizare:** -
+* **Dificultăți:** -
+* **Mod de rezolvare:** -
 
 ---
 
