@@ -13,15 +13,15 @@
 
 ---
 
-<figure >
+<figure style="text-align: center;">
   <img src="doc/electric_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 1:</b> Schema electrica</figcaption>
+  <figcaption><b>Fig. 1:</b> Schema electrica</figcaption>
 </figure>
 
 ---
-<figure>
+<figure style="text-align: center;">
   <img src="doc/modules_block_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 2:</b> Arhitectura Sistemului OV7670 - VGA</figcaption>
+  <figcaption><b>Fig. 2:</b> Arhitectura Sistemului OV7670 - VGA</figcaption>
 </figure>
 
 ---
@@ -146,18 +146,18 @@
 * **Dificultăți:** Afișarea imaginii pe ecran prezenta artefacte (imagine distorsionată, culori inversate/greșite, liniamente defazate sau imagine neclară) din cauza neconcordanțelor de timing la achiziția pixelilor și a configurării greșite a formatului de ieșire al camerei.
 * **Mod de rezolvare:** Am refacut implementarea protocolului SCCB, Am Ajustat tabelul de registre de inițializare a camerei (setarea formatului corect de pixeli și activarea scalării la rezoluția dorită, setarea formatului de culoare in YUV in loc de RGB) și am corectat logica din modulul ov7670_capture pentru a asambla corect cei 2 octeți corespunzători fiecărui pixel.
 ---
-<figure>
+<figure style="text-align: center;">
   <img src="doc/FSM_SCCB_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 3:</b> Diagrama FSM-SCCB</figcaption>
+  <figcaption><b>Fig. 3:</b> Diagrama FSM-SCCB</figcaption>
 </figure>
 
 SCCB - Serial Camera Control Bus
 
 ---
 
-<figure>
+<figure style="text-align: center;">
   <img src="doc/FSM_CAMERA_INIT_diagram.png" alt="Diagrama FSM-SCCB">
-  <figcaption align="center"><b>Fig. 4:</b> Diagrama FSM_OV7670_INIT</figcaption>
+  <figcaption><b>Fig. 4:</b> Diagrama FSM_OV7670_INIT</figcaption>
 </figure>
 
 
