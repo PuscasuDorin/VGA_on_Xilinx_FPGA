@@ -13,7 +13,7 @@
 
 ---
 
-<figure>
+<figure >
   <img src="doc/electric_diagram.png" alt="Diagrama FSM-SCCB">
   <figcaption align="center"><b>Fig. 1:</b> Schema electrica</figcaption>
 </figure>
@@ -26,22 +26,25 @@
 
 ---
 
-<table>
-  <tr>
-    <!-- Coloana stânga: Tabelul de resurse -->
-    <td valign="top">
+<table align="center" style="border: none; border-collapse: collapse; margin: 0 auto;">
+  <tr style="border: none;">
+    <td align="center" style="border: none;">
 
 | Resource | Utilization | Available | Utilization % |
-| :--- | ---: | ---: | ---: |
-| LUT | 520 | 20800 | 2.50 |
-| FF | 163 | 41600 | 0.39 |
-| BRAM | 19 | 50 | 38.00 |
-| DSP | 2 | 90 | 2.22 |
-| IO | 35 | 106 | 33.02 |
-| BUFG | 3 | 32 | 9.38 |
-| MMCM | 1 | 5 | 20.00 |
+| :--- | :---: | :---: | :---: |
+| **LUT** | 520 | 20800 | 2.50 |
+| **FF** | 163 | 41600 | 0.39 |
+| **BRAM** | 19 | 50 | 38.00 |
+| **DSP** | 2 | 90 | 2.22 |
+| **IO** | 35 | 106 | 33.02 |
+| **BUFG** | 3 | 32 | 9.38 |
+| **MMCM** | 1 | 5 | 20.00 |
+
+<br>
 
 <img src="doc/FPGA_timing.png" alt="FPGA Setup Timing" width="400">
+
+  </td>
   </tr>
 </table>
 
@@ -59,9 +62,10 @@
   - [Etapa 2 - Proiectarea și simularea controlerului VGA](#etapa-2---proiectarea-și-simularea-controlerului-vga)
   - [Etapa 3 - Implementarea pe hardware](#etapa-3---implementarea-pe-hardware)
   - [Etapa 4 - Afișarea și mișcarea unui obiect pe ecran](#etapa-4---afișarea-și-mișcarea-unui-obiect-pe-ecran)
-  - [Etapa 5 - Integrarea camerei și afișarea imaginilor](#etapa-5---integrarea-camerei-și-afișarea-imaginilor)
-  - [Etapa 6 - Interfațarea senzorului de mișcare](#etapa-6---interfațarea-senzorului-de-mișcare)
-  - [Etapa 7 (Bonus) - Trimiterea imaginii captate prin UARTv la PC](#etapa-7-bonus---trimiterea-imaginii-captate-prin-uartv-la-pc)
+  - [Etapa 5 - Proiectarea și realizarea unui PMOD Shield custom pentru Basys 3 (Camera + PIR)](#etapa-5---proiectarea-și-realizarea-unui-pmod-shield-custom-pentru-basys-3-camera--pir)
+  - [Etapa 6 - Integrarea camerei și afișarea imaginilor](#etapa-6---integrarea-camerei-și-afișarea-imaginilor)
+  - [Etapa 7 - Interfațarea senzorului de mișcare](#etapa-7---interfațarea-senzorului-de-mișcare)
+  - [Etapa 8 (Bonus) - Trimiterea imaginii captate prin UARTv la PC](#etapa-8-bonus---trimiterea-imaginii-captate-prin-uartv-la-pc)
 
 ---
 
@@ -71,6 +75,11 @@
 * **Implementarea etapizată a unui controler VGA** cu rezoluția baseline de **640x480**.
 * **Afișarea dinamică a unei imagini** și randarea elementelor grafice pe ecran.
 * **Integrarea componentelor hardware externe**, incluzând un senzor detector de mișcare (PIR) și un modul de cameră video.
+
+<p align="center">
+  <img src="doc/final1.jpg" width="380" height="320" alt="final1" />
+  <img src="doc/final2.jpg" width="220" height="320" alt="final2" />
+</p>
 
 ---
 
@@ -100,6 +109,10 @@
 * **Dificultăți:** -
 * **Mod de rezolvare:** - 
 
+<p align="center">
+  <img src="doc/red_display.jpg" width="450" height="320" alt="red_display" />
+</p>
+
 ---
 
 ## Etapa 4 - Afișarea și mișcarea unui obiect pe ecran
@@ -108,10 +121,26 @@
 * **Dificultăți:** Initial obiectul de pe ecran nu aparea cum trebuie si dupa ce am facut obiectul sa se miste se bloca in colturi.
 * **Mod de rezolvare:** Am corectat limitele geometrice (coordonatele bounding box) ale obiectului, rezolvând astfel problema distorsionării grafice. Pentru a elimina blocajele din colțuri, am ajustat condițiile de coliziune cu marginile ecranului (din partea stanga si de sus): am înlocuit testarea eronată a pixelului absolut `0` pe axele X și Y cu o limitare la primul pixel vizibil din zona activă (`1`), asigurând o schimbare fluidă a direcției de mișcare.
 
+<p align="center">
+  <img src="doc/cube.JPG" width="450" height="320" alt="cube" />
+</p>
+
 ---
 
+## Etapa 5 - Proiectarea și realizarea unui PMOD Shield custom pentru Basys 3 (Camera + PIR)
+* **Obiectiv:** Proiectarea și asamblarea unui adaptor (shield) bazat pe conectori PMOD pentru placa Basys 3, cu scopul de a conecta modular, sigur și compact modulul de cameră (ex: OV7670) și senzorul de mișcare PIR.
+* **Realizare:** Am proiectat schema electrică și PCB-ul adaptorului, rutați pinii de date și control ai camerei și ai senzorului direct către porturile PMOD ale plăcii Basys 3 (păstrând nivelele logice de 3.3V). Am lipit conectorii tată-mamă și am testat continuitatea traseelor înainte de alimentarea pe placă.
+* **Dificultăți:** Alimentarea senzorului PIR era de 5V, iar pinii PMOD ai FPGA-ului scoteau doar 3.3V.
+* **Mod de rezolvare:** Am tăiat un cablu USB A l-am legat la pinii de alimentare ai senzorului, iar celălalt capăt l-am pus în portul USB al FPGA-ului care scoate 5V.
+<p align="center">
+  <img src="doc/PMOD1.jpg" width="220" height="220" alt="PMOD1" />
+  <img src="doc/PMOD2.jpg" width="220" height="220" alt="PMOD2" />
+  <img src="doc/PMOD3.jpg" width="220" height="220" alt="PMOD3" />
+</p>
 
-## Etapa 5 - Integrarea camerei și afișarea imaginilor
+---
+
+## Etapa 6 - Integrarea camerei și afișarea imaginilor
 * **Obiectiv:** Preluarea unui flux video de la o cameră externă (sau imagini predefinite), stocarea datelor într-o memorie internă și randarea lor dinamică pe VGA.
 * **Realizare:** Implementarea modulelor de control pentru camera OV7670 (ov7670_sccb, ov7670_init, ov7670_capture). Datele ale pixelilor recepționați de la cameră pe magistrala ov7670_data sunt capturate sincron pe frontul PCLK și stocate într-o memorie internă Dual-Port BRAM (frame_buffer). În paralel, modulul de afișare VGA (vga_controller / vga_img_display) citește adresele din BRAM sincronizat cu ceasul de afișare și randează fluxul video în timp real pe monitor.
 * **Dificultăți:** Afișarea imaginii pe ecran prezenta artefacte (imagine distorsionată, culori inversate/greșite, liniamente defazate sau imagine neclară) din cauza neconcordanțelor de timing la achiziția pixelilor și a configurării greșite a formatului de ieșire al camerei.
@@ -132,10 +161,9 @@ SCCB - Serial Camera Control Bus
 </figure>
 
 
-
 ---
 
-## Etapa 6 - Interfațarea senzorului de mișcare
+## Etapa 7 - Interfațarea senzorului de mișcare
 * **Obiectiv:** Conectarea senzorului de mișcare (PIR) la FPGA și utilizarea stării acestuia pentru a influența memoria BRAM a FPGA-ului care stocheaza imaginea primita de la camera.
 * **Realizare:** Conectarea ieșirii digitale a senzorului PIR la un pin de intrare al FPGA-ului (pir_sensor). Preluarea stării senzorului și integrarea acesteia în logica de control a sistemului pentru a acționa asupra memoriei frame_buffer (de exemplu: oprirea scrierii în BRAM pentru a „îngheța”/salva cadrul în momentul detectării mișcării sau modificarea modulului de afișare VGA).
 * **Dificultăți:** -
@@ -143,7 +171,7 @@ SCCB - Serial Camera Control Bus
 
 ---
 
-## Etapa 7 (Bonus) - Trimiterea imaginii captate prin UARTv la PC
+## Etapa 8 (Bonus) - Trimiterea imaginii captate prin UARTv la PC
 * **Obiectiv:** Transmiterea datelor binare ale imaginii salvate în memoria FPGA-ului (BRAM) către un calculator, utilizând protocolul de comunicație serială UART.
 * **Realizare:** -
 * **Dificultăți:** - 
