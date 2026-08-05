@@ -1,60 +1,3 @@
-<!-- Pentru a face scrisul alb -->
-
-<style>
-  /* Stilul pentru ecran și browser */
-  :root {
-    color-scheme: dark;
-  }
-  body {
-    background-color: #0d1117 !important;
-    color: #e6edf3 !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding: 30px;
-  }
-
-  /* Regulă strictă pentru salvarea în PDF (Print) */
-  @media print {
-    html, body {
-      background-color: #0d1117 !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    /* Forțează absolut toate textele, titlurile, celulele și lista să rămână albe/deschise */
-    body, p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, figcaption, b, strong {
-      color: #e6edf3 !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-
-    /* Ajustează bordurile tabelelor pentru a fi vizibile pe fundal închis */
-    table, th, td {
-      border-color: #30363d !important;
-    }
-  }
-</style>
-
-<!-- Pentru a face background-ul negru -->
-<style>
-  :root {
-    color-scheme: dark;
-  }
-  body {
-    background-color: #0d1117 !important; /* Culoarea de fundal Dark */
-    color: #c9d1d9 !important;            /* Culoarea textului principal */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding: 30px;
-  }
-  /* Păstrează fundalul la salvarea în PDF */
-  @media print {
-    body {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-      background-color: #0d1117 !important;
-    }
-  }
-</style>
-
 # FPGA Video Surveillance System with PIR Motion Detection & VGA Intruder Alert
 ### Autor: Pușcașu Dorin
 <!--# Sistem de Supraveghere Video pe FPGA cu Detecție PIR și Alertă VGA-->
@@ -133,10 +76,10 @@
 * **Afișarea dinamică a unei imagini** și randarea elementelor grafice pe ecran.
 * **Integrarea componentelor hardware externe**, incluzând un senzor detector de mișcare (PIR) și un modul de cameră video.
 
-<div style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%;">
-  <img src="doc/final1.jpg" alt="final1" style="width: 380px !important; height: 320px !important; object-fit: cover; display: block;" />
-  <img src="doc/final2.jpg" alt="final2" style="width: 220px !important; height: 320px !important; object-fit: cover; display: block;" />
-</div>
+<p align="center">
+  <img src="doc/final1.jpg" width="380" height="320" alt="final1" />
+  <img src="doc/final2.jpg" width="220" height="320" alt="final2" />
+</p>
 
 ---
 
@@ -189,13 +132,11 @@
 * **Realizare:** Am proiectat schema electrică și PCB-ul adaptorului, rutați pinii de date și control ai camerei și ai senzorului direct către porturile PMOD ale plăcii Basys 3 (păstrând nivelele logice de 3.3V). Am lipit conectorii tată-mamă și am testat continuitatea traseelor înainte de alimentarea pe placă.
 * **Dificultăți:** Alimentarea senzorului PIR era de 5V, iar pinii PMOD ai FPGA-ului scoteau doar 3.3V.
 * **Mod de rezolvare:** Am tăiat un cablu USB A l-am legat la pinii de alimentare ai senzorului, iar celălalt capăt l-am pus în portul USB al FPGA-ului care scoate 5V.
-
-
-<div style="text-align: center; display: flex; justify-content: center; gap: 1%; width: 100%;">
-  <img src="doc/PMOD1.jpg" style="width: 31%; height: 200px; object-fit: cover; border: 1px solid #444; display: block;">
-  <img src="doc/PMOD2.jpg" style="width: 31%; height: 200px; object-fit: cover; border: 1px solid #444; display: block;">
-  <img src="doc/PMOD3.jpg" style="width: 31%; height: 200px; object-fit: cover; border: 1px solid #444; display: block;">
-</div>
+<p align="center">
+  <img src="doc/PMOD1.jpg" width="220" height="220" alt="PMOD1" />
+  <img src="doc/PMOD2.jpg" width="220" height="220" alt="PMOD2" />
+  <img src="doc/PMOD3.jpg" width="220" height="220" alt="PMOD3" />
+</p>
 
 ---
 
@@ -235,3 +176,4 @@ SCCB - Serial Camera Control Bus
 * **Realizare:** -
 * **Dificultăți:** - 
 * **Mod de rezolvare:** - 
+
